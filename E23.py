@@ -1,3 +1,8 @@
+print("Hello World")
+
+
+
+
 def PropDivisors(i):
     properDivisors = [1]
     for j in range(int(float(i)**(1/2))):
@@ -40,14 +45,14 @@ count = 0
 for i in range(28123):
         i+=1 #start at 1
         if(isAbundant(i)):
-                print(i, " is an abundant number")
+                #print(i, " is an abundant number")
                 abundances[i] +=1
                 count+=1
         elif(isPerfect(i)):
-                print(i, "is a perfect number")
+                #print(i, "is a perfect number")
                 count+=1
         else:
-                print(i, " is a deficient number")
+                #print(i, " is a deficient number")
                 count+=1
 
 for i in range(28123):
@@ -59,10 +64,11 @@ for i in range(28123):
                                 k = i + j
                                 if(k < 28123):
                                         sumAbunds[k] += 1
-                                        print(k, " can be obtained by adding abundant numbers: ", i, " and ", j)
+                                        #print(k, " can be obtained by adding abundant numbers: ", i, " and ", j)
                         j+=1
         else:
-                print("skipping ", i, " since it is not abundant!")
+                True
+                #print("skipping ", i, " since it is not abundant!")
 
 finalAnswer = 0
 for i in range(28123):
