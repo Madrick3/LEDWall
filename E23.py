@@ -18,6 +18,9 @@ A number n is called deficient if the sum of its proper divisors is less than n 
 
 Find the sum of all the positive integers which cannot be written as the sum of two abundant numbers.
  """
+
+print("Hello")
+print("ANother Hello")
 def isAbundant(i):
         pd = PropDivisors(i) #retreive a list of all proper divisors 
         sumpd = sum(pd)
@@ -64,7 +67,7 @@ for i in range(28123):
         else:
                 True
                 #print("skipping ", i, " since it is not abundant!")
-print("Hello World")
+
 finalAnswer = 0
 for i in range(28123):
         if sumAbunds[i] == 0:
