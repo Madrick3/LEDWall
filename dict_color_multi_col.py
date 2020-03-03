@@ -6,7 +6,7 @@ import array as arr
 
 #Array of data
 dict_data={}
-dict_data["data1"]=[0,1,0,0,1,0,0,1,1,0,0]
+dict_data["data1"]=[1,1,0,0,1,0,0,1,1,0,0]
 dict_data["data2"]=[0,0,0,0,1,1,0,1,0,0,1]
 dict_data["data3"]=[1,1,1,1,1,1,1,1,1,1]
 dict_data["data4"]=[0,0,0,0,0,0,0,0,0,0]
@@ -43,7 +43,6 @@ while j<=(10):
         if data[x]==1:
             color_def.append('k')
         x=x+1
-        colors_org.append(colors)
     dict_colors[("colors"+str(j))]=color_def
     j=j+1
 
@@ -58,8 +57,9 @@ while h<=(10):
 fig, ax = plt.subplots()
 ax.axis('tight')
 ax.axis('off')
-info = ax.table(cellColours=colorlog, loc='centered')
-plt.savefig('data_grid.png', bbox_inches="tight")
+info = ax.table(cellColours=colorlog, loc='center')
+info.scale(1, 2.5)
+plt.savefig('data_grid.png', bbox_inches="tight", pad_inches=0)
 plt.show()
 
 # %%
