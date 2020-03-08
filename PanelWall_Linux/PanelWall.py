@@ -42,9 +42,11 @@ class PanelWall:
 
     userPlatform = platform.system()
     if(userPlatform == 'Darwin'): 
-        print("This module is not intended to be used with MacOS. Please use the MacOS version of this module or use a Linux Platform")
+        print("LEDWall/PanelWall_Linux: This module is not intended to be used with MacOS. Please use the MacOS version of this module or use a Linux Platform")
+        os._exit(1)
     elif(userPlatform == 'Windows'):
-        print("This module is not intended to be used with Windows. Please use the Windows version of this module or use a Linux Platform")
+        print("LEDWall/PanelWall_Linux: This module is not intended to be used with Windows. Please use the Windows version of this module or use a Linux Platform")
+        os._exit(1)
     f = open("garbagescript.trash","w")
     
     parameters = {
