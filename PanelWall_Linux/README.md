@@ -27,6 +27,7 @@ Additionally, this program will create a local server to communicate with the ja
 #TODO: Create this interface
 
 The following is a simple example usage which assumes only 1 panel and iterates through the RGB spectrum:
+
     myWall = PanelWall()
 
     myWall.screenSaver = 3
