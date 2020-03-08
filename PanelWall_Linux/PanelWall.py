@@ -1,7 +1,7 @@
 """A module for controlling the LEDWall in the basement of Benedum Hall at the University of Pittsburgh
 
 PanelWall is used to display images to a digital canvas and 'push' them
-to the LED Wall. This moduleprimarily is used to determine the behavior
+to the LED Wall. Primarily, this module is used to determine the behavior
 of the LED Wall, (e.g. The number and arrangement of panels, dynamic or
 static operation, dimensions of the digital canvas, etc.).
 This module interfaces with a Java program and sends user defined parameters
@@ -14,6 +14,9 @@ to the executable. The following parameters are currently supported:
     imageFilepath:(Str) The relative path to the file that we are trying to print. Default: "testing.jpg"
     imageWidth:   (int) The width in pixels of the image file supplied. Default: 400
     imageHeight:  (int) The height in pixels of the image file supplied. Default: 300
+
+Additionally, this program will create a local server to communicate with the java program.
+#TODO: Create this interface
 
 The following is a simple example usage which assumes only 1 panel and iterates through the RGB spectrum:
     myWall = PanelWall()
