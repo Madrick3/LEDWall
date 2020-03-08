@@ -30,68 +30,46 @@ is not the same as what is used in this software, incorrect behavior is likely
 to occur.
 """
 
-#!/usr/bin/python 3
+
 import os
 import platform
 
+ #TODO: Test this new version on linux distro
 class PanelWall:
+
     userPlatform = platform.system()
     if(userPlatform == 'Darwin'): 
         print("This module is not intended to be used with MacOS. Please use the MacOS version of this module or use a Linux Platform")
     elif(userPlatform == 'Windows'):
         print("This module is not intended to be used with Windows. Please use the Windows version of this module or use a Linux Platform")
-    
     f = open("garbagescript.trash","w")
     
     parameters = {
-        "imageWidth": 400,
-        "imageHeight": 300,
-        "numPanelsX": 4,
-        "numPanelsY": 3,
-        "screenSaver": 1,
-        "canvasWidth": 800,
-        "canvasHeight": 600,
-        "imageFilepath": "testing.jpg",
-        }
+        "imageWidth": (400, "--image-width"),
+        "imageHeight": (300, "--image-height"),
+        "numPanelsX": (4, "--num-panels-x"),
+        "numPanelsY": (3, "--num-panels-y"),
+        "screenSaver": (1, "--screen-saver"),
+        "canvasWidth": (800, "--canvas-width"),
+        "canvasHeight": (600, "--canvas-height"),
+        "imageFilepath": ("testing.jpg", "--image-filename"),
+    }
     
-    parameterNames = {
-        "imageWidth": "--image-width",
-        "imageHeight": "--image-height",
-        "numPanelsX": "--num-panels-x",
-        "numPanelsY": "--num-panels-y",
-        "screenSaver": "--screen-saver",
-        "canvasWidth": "--canvas-width",
-        "canvasHeight": "--canvas-height",
-        "imageFilepath": "--image-filename",
-        }
-    
-    changed = {
-        "imageWidth": False,
-        "imageHeight": False,
-        "numPanelsX": False,
-        "numPanelsY": False,
-        "screenSaver": False,
-        "canvasWidth": False,
-        "canvasHeight": False,
-        "imageFilepath": False,
-        }
-
     def __init__(self):
         self.f = open("panelScript", "w")
         self.f.write('APPDIR=$(readlink -f "$0")\n')
         self.f.write('APPDIR=$(dirname "$APPDIR")\n')
         self.f.write('java -Djna.nosys=true -Djava.library.path="$APPDIR:$APPDIR/lib" -cp '
-            '"$APPDIR:$APPDIR/lib/PanelWall.jar:$APPDIR/lib/core.jar:$APPDIR/lib/jogl-all.jar:'
+            '"$APPDIR:$APPDIR/lib/PanelWall.jar:$APPDIR/lib/core.jar:$APPDIR/lib/jogl-all.jar:' 
             '$APPDIR/lib/gluegen-rt.jar:$APPDIR/lib/jogl-all-natives-linux-aarch64.jar:'
             '$APPDIR/lib/gluegen-rt-natives-linux-aarch64.jar:$APPDIR/lib/nrserial.jar:'
-            '$APPDIR/lib/PixelPusher.jar" PanelWall --this-goes-first thenThis ')    
+            '$APPDIR/lib/PixelPusher.jar" PanelWall --this-goes-first thenThis')    
     
     def writeParameters(self):
-        print("Parameters being used by the Wall")
-        for prop in self.changed:
-            if(self.changed[prop]):
-                self.f.write(str(self.parameterNames[prop]) + " " + str(self.parameters[prop]) + " ")
-                print(str(self.parameterNames[prop]) + " " + str(self.parameters[prop]) + " ")
+        print("Parameters being used by the Wall: ")
+        for parameter in self.parameters:
+            self.f.write(" " + str(self.parameters[parameter][1]) + " " + str(self.parameters[parameter][0]))
+            print(" " + str(self.parameters[parameter][1]) + " " + str(self.parameters[parameter][0]))
 
     def run(self):
         self.writeParameters()
@@ -103,77 +81,68 @@ class PanelWall:
         os.system(command)
     
     @property
-    def imageWidth(self):
-        return self.parameters["imageWidth"]
+    def imageWidth(self) -> int:
+        return self.parameters["imageWidth"][0]
     
     @imageWidth.setter
-    def imageWidth(self, value):
-        self.parameters["imageWidth"] = value
-        self.changed["imagewidth"] = True
+    def imageWidth(self, value: int) -> None:
+        self.parameters["imageWidth"] = (value, "--image-width")
     
     @property
-    def imageHeight(self):
-        return self.parameters["imageHeight"]
-    
+    def imageHeight(self) -> int:
+        return self.parameters["imageHeight"][0]
     
     @imageHeight.setter
-    def imageHeight(self, value):
-        self.parameters["imageHeight"] = value
-        self.changed["imageHeight"] = True
+    def imageHeight(self, value: int) -> None:
+        self.parameters["imageHeight"] = (value, "--image-height")
     
     @property
-    def numPanelsX(self):
-        return self.parameters["numPanelsX"]
+    def numPanelsX(self) -> int:
+        return self.parameters["numPanelsX"][0]
     
     @numPanelsX.setter
-    def numPanelsX(self, value):
-        self.parameters["numPanelsX"] = value
-        self.changed["numPanelsX"] = True
+    def numPanelsX(self, value: int) -> None:
+        self.parameters["numPanelsX"] = (value, "--num-panels-x")
         
     @property
-    def numPanelsY(self):
-        return self.parameters["numPanelsY"]
+    def numPanelsY(self) -> int:
+        return self.parameters["numPanelsY"][0]
     
     @numPanelsY.setter
-    def numPanelsY(self, value):
-        self.parameters["numPanelsY"] = value
-        self.changed["numPanelsY"] = True
+    def numPanelsY(self, value: int) -> None:
+        self.parameters["numPanelsY"] = (value, "--num-panels-y")
                 
     @property
-    def screenSaver(self):
-        return self.parameters["screenSaver"]
+    def screenSaver(self) -> int:
+        return self.parameters["screenSaver"][0]
     
     @screenSaver.setter
-    def screenSaver(self, value):
-        self.parameters["screenSaver"] = value
-        self.changed["screenSaver"] = True
+    def screenSaver(self, value: int) -> None:
+        self.parameters["screenSaver"] = (value, "--screen-saver")
     
     @property
-    def canvasWidth(self):
-        return self.parameters["canvasWidth"]
+    def canvasWidth(self) -> int:
+        return self.parameters["canvasWidth"][0]
     
     @canvasWidth.setter
-    def canvasWidth(self, value):
-        self.parameters["canvasWidth"] = value
-        self.changed["canvasWidth"] = True
+    def canvasWidth(self, value: int) -> None:
+        self.parameters["canvasWidth"] = (value, "--canvas-width")
         
     @property
-    def canvasHeight(self):
-        return self.parameters["canvasHeight"]
+    def canvasHeight(self) -> int:
+        return self.parameters["canvasHeight"][0]
     
     @canvasHeight.setter
-    def canvasHeight(self, value):
-        self.parameters["canvasHeight"] = value
-        self.changed["canvasHeight"] = True
+    def canvasHeight(self, value: int):
+        self.parameters["canvasHeight"] = (value, "--canvas-height")
     
     @property
-    def imageFilepath(self):
-        return self.parameters["imageFilepath"]
+    def imageFilepath(self) -> str:
+        return self.parameters["imageFilepath"][0]
     
     @imageFilepath.setter
-    def imageFilepath(self, value):
-        self.parameters["imageFilepath"] = value
-        self.changed["imageFilepath"] = True
+    def imageFilepath(self, value: str):
+        self.parameters["imageFilepath"] = (value, "--image-filename")
 
 myWall = PanelWall()
 myWall.screenSaver = 3
