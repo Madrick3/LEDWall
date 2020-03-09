@@ -60,7 +60,7 @@ class PanelWall:
         "imageFilepath": ("testing.jpg", "--image-filename"),
     }
     
-    def __init__(self):
+    def __init__(self) -> None:
         self.f = open("panelScript", "w")
         self.f.write('APPDIR=$(readlink -f "$0")\n')
         self.f.write('APPDIR=$(dirname "$APPDIR")\n')
@@ -70,13 +70,13 @@ class PanelWall:
             '$APPDIR/lib/gluegen-rt-natives-linux-aarch64.jar:$APPDIR/lib/nrserial.jar:'
             '$APPDIR/lib/PixelPusher.jar" PanelWall --this-goes-first thenThis')    
     
-    def writeParameters(self):
+    def writeParameters(self) -> None:
         print("Parameters being used by the Wall: ")
         for parameter in self.parameters:
             self.f.write(" " + str(self.parameters[parameter][1]) + " " + str(self.parameters[parameter][0]))
             print(" " + str(self.parameters[parameter][1]) + " " + str(self.parameters[parameter][0]))
 
-    def run(self):
+    def run(self) -> None:
         self.writeParameters()
         self.f.close()
         command = "chmod +x panelScript"
@@ -84,6 +84,10 @@ class PanelWall:
 
         command = "./panelScript"
         os.system(command)
+
+    """"""
+    #def updatePanel(self) -> bool:
+
     
     @property
     def imageWidth(self) -> int:
