@@ -35,35 +35,40 @@ DeviceRegistry registry;
 
 
 
-class JavaServer {
+class JavaSocket {
   Socket socket;
   DataInputStream din;
   int x = 0;
   int y = 0;
   
-  public JavaServer() {
+  public JavaSocket() {
     try{
       socket = new Socket("localhost", 2004);
       din = new DataInputStream(socket.getInputStream());
       System.out.println("Socket created and datainputstream");
     } catch (IOException e){
-      System.out.println("error creating socket");
+      System.out.println("JavaSocket Error: Creating and Connecting to Socket Failed");
     }
   }
   
-  public void getInput(){
+  public int getInput(){
     try{
       String tmp; 
       while ((tmp = din.readLine()) != null) {
+          System.out.println("tmp: " + tmp);
           String[] values = tmp.split(",");
-          fill(Integer.parseInt(values[0]), Integer.parseInt(values[1]), Integer.parseInt(values[2]));
-          rect(x, y, width, height);
+          int retThis = color(Integer.parseInt(values[0]), Integer.parseInt(values[1]), Integer.parseInt(values[2]));
+          return retThis;
       }
-      System.out.println("from server we got: " + tmp);
     } catch(IOException e){
       System.out.println("IOException when retrieving input: " + e.toString());
+      return(color(255,0,0));
     }
-    
+    return(color(0,255,0));
+  }
+  
+  public int getWhiteScreen(){
+    return(color(255,255,255));
   }
 }
 
@@ -108,10 +113,10 @@ int rainLength = 3;
 int screenSaver = 0;
 String filename = "image.jpg";
 int state, r, g, b;
-JavaServer connection;
+JavaSocket connection;
 
 public void settings() {
-  //String[] args = new String[]{"--no-panels", "true", "--image-width", "400", "--image-height", "300", "--num-panels-x", "1", "--num-panels-y", "1", "--screen-saver", "3", "--canvas-width", "800", "--canvas-height", "800", "--image-filename", "testing.jpg"};
+  //String[] args = new String[]{"--no-panels", "true", "--image-width", "400", "--image-height", "300", "--num-panels-x", "1", "--num-panels-y", "1", "--screen-saver", "0", "--canvas-width", "800", "--canvas-height", "800", "--image-filename", "testing.jpg"};
   for(int i = 0; i < args.length; i+=1 ){ //first we should determine what the command line arguments are: 
     System.out.println(args[i]);
     if(args[i].equals("--image-width")){
@@ -127,19 +132,15 @@ public void settings() {
     } else if(args[i].equals("--canvas-width")){
       canvasWidth = Integer.parseInt(args[i+1]);
     } else if(args[i].equals("--canvas-height")){
-      System.out.println("old canvas height!" + canvasHeight); 
       canvasHeight = Integer.parseInt(args[i+1]);
-      System.out.println("new canvas height!" + canvasHeight); 
     } else if(args[i].equals("--strips-by-rows")){
       stripsByRows = Boolean.parseBoolean(args[i+1]);
     } else if(args[i].equals("--no-panels")){
       sendToPanels = !Boolean.parseBoolean(args[i+1]);
-      System.out.println("new sendToPanels!" + sendToPanels); 
     } else if(args[i].equals("--image-filename")){
       filename = args[i+1];
     }
   }
-  System.out.println(canvasWidth + "" + canvasHeight);
   size(canvasWidth, canvasHeight);
   System.out.println("CanvasWidth: " + width + " and CanvasHeight: " + height); 
 }
@@ -151,7 +152,7 @@ public void settings() {
 */
 public void setup() {
   if(screenSaver == 0){
-    connection = new JavaServer();
+    connection = new JavaSocket();
   } else if (screenSaver > 0 && screenSaver < 3){
     droplets = new ArrayList<Rain>(height);
     if(screenSaver == 2){
@@ -191,8 +192,18 @@ public void draw() {
      //THIS IS THE SECTION OF THE CODE WHICH READS IN THE IMAGE FROM THE DIRECTORY
      if(screenSaver == 0){ //standard where we load from a file
        System.out.println("requesting input");
-       connection.getInput();
-       System.out.println(newInput);
+       int inputPixel;
+       /*for(int i = 0; i < width; i++){
+         for(int j = 0; j < height; j++){
+         */
+           inputPixel = connection.getInput();
+           stroke(red(inputPixel) + green(inputPixel) + blue(inputPixel));
+           fill(red(inputPixel), green(inputPixel), blue(inputPixel));
+           rect(0,0,width,height);
+           System.out.println("I just tried to make it a color!");
+           System.out.println(red(inputPixel) + green(inputPixel) + blue(inputPixel)); //
+         //}
+       //}
      } else if(screenSaver == 1 || screenSaver == 2) {
        int newRainStart = R.nextInt(width/(width/xPanels/stride)); //get a random starting point for the new rain drop
        newRainStart = newRainStart*(width/xPanels/stride);

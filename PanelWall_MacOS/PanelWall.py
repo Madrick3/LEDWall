@@ -39,10 +39,10 @@ import socket
 import platform
 import plistlib
 
-RED = (255,0,0)
-GREEN = (0,255,0)
-BLUE = (0,0,255)
-screen = []
+RED = ("255","0","0")
+GREEN = ("0","255","0")
+BLUE = ("0","0","255")
+screen = ()
 
  #TODO: Test this new version on linux distro
 class PanelWall:
@@ -57,6 +57,10 @@ class PanelWall:
     
     pl = plistlib.readPlist("application.macosx/PanelWall.app/Contents/InfoTemplate.plist")
     sock = socket.socket()
+    framerate = 30
+    period = 1/framerate
+    starttime = time.time()
+    frameDuration = time.time() - starttime
 
     parameters = {
         "imageWidth": (400, "--image-width"),
@@ -98,13 +102,16 @@ class PanelWall:
             (self.javaClient, info) = self.sock.accept()
 
     def updatePanel(self, value) -> bool:
-        print("Updating the panels")
-        """
-        for row in value:
-            for col in row:
-                self.javaClient.send(col[0] + "," + col[1] + "," + col[2]) #send "red,green,blue"
-        """
-        self.javaClient.send(value[0] + "," + value[1] + "," + value[2])
+        self.starttime = time.time()
+        sendthis = str.encode(self.screen[0] + "," + self.screen[1] + "," + self.screen[2] + "\n")
+        self.javaClient.send(sendthis)
+        time.sleep(0.0001)
+        self.frameDuration = time.time() - self.starttime
+        if(self.frameDuration > 0):
+            #print("frame had space to move: " + str(self.period - self.frameDuration))
+            time.sleep(self.frameDuration)
+        else:
+            print("Frame took longer than determined period to update")
         return(True)
     
     def testUpdate(self) -> None:
@@ -121,10 +128,11 @@ class PanelWall:
                 self.screen = BLUE
                 loop+=1
             if(loop == 100):
+                print("newSttate")
                 loop=0
                 state+=1
                 state%=3
-            updatePanel(self.screen)
+            self.updatePanel(self.screen)
 
     @property
     def imageWidth(self) -> int:
@@ -214,6 +222,6 @@ myWall.numPanelsY = 1
 myWall.canvasWidth = 400
 myWall.canvasHeight = 400
 myWall.run()
-time.sleep(5)
+time.sleep(1)
 myWall.testUpdate()
     
