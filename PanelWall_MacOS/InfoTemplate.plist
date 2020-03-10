@@ -28,24 +28,8 @@
 	<string>1</string>
 	<key>JVMArguments</key>
 	<array>
-		<string>--image-width</string>
-		<string>400</string>
-		<string>--image-height</string>
-		<string>300</string>
-		<string>--num-panels-x</string>
-		<string>1</string>
-		<string>--num-panels-y</string>
-		<string>1</string>
-		<string>--screen-saver</string>
-		<string>0</string>
-		<string>--canvas-width</string>
-		<string>400</string>
-		<string>--canvas-height</string>
-		<string>400</string>
-		<string>--image-filename</string>
-		<string>testing.jpg</string>
-		<string>--no-panels</string>
-		<string>True</string>
+		<string>NO</string>
+        <string>CHANGE</string>
 	</array>
 	<key>JVMMainClassName</key>
 	<string>PanelWall</string>

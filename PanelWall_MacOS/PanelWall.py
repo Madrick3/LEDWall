@@ -33,10 +33,16 @@ is not the same as what is used in this software, incorrect behavior is likely
 to occur.
 """
 
-
 import os
+import time
+import socket
 import platform
 import plistlib
+
+RED = (255,0,0)
+GREEN = (0,255,0)
+BLUE = (0,0,255)
+screen = []
 
  #TODO: Test this new version on linux distro
 class PanelWall:
@@ -50,6 +56,7 @@ class PanelWall:
         os._exit(1)
     
     pl = plistlib.readPlist("application.macosx/PanelWall.app/Contents/InfoTemplate.plist")
+    sock = socket.socket()
 
     parameters = {
         "imageWidth": (400, "--image-width"),
@@ -65,7 +72,11 @@ class PanelWall:
     
     """Create a new file since the user is trying to use the wall"""
     def __init__(self) -> None:
-        print("Creating Virtual Wall")
+        print("Creating Virtual Wall and creating a virtual server")
+        HOST = "localhost"
+        PORT = 2004
+        self.sock.bind((HOST, PORT))
+        self.sock.listen(1)
 
     def writeParameters(self) -> None:
         print("Parameters being used by the Wall: ")
@@ -75,18 +86,46 @@ class PanelWall:
             self.pl["JVMArguments"].append(str(self.parameters[parameter][0]))
             print(" " + str(self.parameters[parameter][1]) + " " + str(self.parameters[parameter][0]))
         plistlib.writePlist(self.pl, "application.macosx/PanelWall.app/Contents/Info.plist")
-        #plistlib.dump(self.pl, self.fp, fmt=plistlib.FMT_XML, sort_keys=False, skipkeys=False)
-        #print(self.pl)
 
     def run(self) -> None:
         self.writeParameters()
         command = "./application.macosx/PanelWall.app/Contents/MacOS/PanelWall"
-        os.system(command)
+        newpid = os.fork()
+        if newpid == 0:
+            print("Child Process")
+            os.system(command)
+        else:
+            (self.javaClient, info) = self.sock.accept()
 
-    """"""
-    #def updatePanel(self) -> bool:
-
+    def updatePanel(self, value) -> bool:
+        print("Updating the panels")
+        """
+        for row in value:
+            for col in row:
+                self.javaClient.send(col[0] + "," + col[1] + "," + col[2]) #send "red,green,blue"
+        """
+        self.javaClient.send(value[0] + "," + value[1] + "," + value[2])
+        return(True)
     
+    def testUpdate(self) -> None:
+        state = 0
+        loop = 0
+        while(True):
+            if(state == 0):
+                self.screen = RED
+                loop+=1
+            elif(state == 1):
+                self.screen = GREEN
+                loop+=1
+            else:
+                self.screen = BLUE
+                loop+=1
+            if(loop == 100):
+                loop=0
+                state+=1
+                state%=3
+            updatePanel(self.screen)
+
     @property
     def imageWidth(self) -> int:
         return self.parameters["imageWidth"][0]
@@ -169,9 +208,12 @@ class PanelWall:
 
 myWall = PanelWall()
 
-myWall.screenSaver = 3
+myWall.screenSaver = 0
 myWall.numPanelsX = 1
 myWall.numPanelsY = 1
-myWall.canvasWidth = 100
-myWall.canvasHeight = 100
+myWall.canvasWidth = 400
+myWall.canvasHeight = 400
 myWall.run()
+time.sleep(5)
+myWall.testUpdate()
+    

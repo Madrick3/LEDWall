@@ -8,6 +8,8 @@ import com.heroicrobot.dropbit.devices.pixelpusher.Pixel;
 import com.heroicrobot.dropbit.devices.pixelpusher.Strip; 
 import java.util.*; 
 import processing.core.*; 
+import java.io.*; 
+import java.net.*; 
 
 import java.util.HashMap; 
 import java.util.ArrayList; 
@@ -28,6 +30,43 @@ public class PanelWall extends PApplet {
 
 
 DeviceRegistry registry;
+
+
+
+
+
+class JavaServer {
+  Socket socket;
+  DataInputStream din;
+  int x = 0;
+  int y = 0;
+  
+  public JavaServer() {
+    try{
+      socket = new Socket("localhost", 2004);
+      din = new DataInputStream(socket.getInputStream());
+      System.out.println("Socket created and datainputstream");
+    } catch (IOException e){
+      System.out.println("error creating socket");
+    }
+  }
+  
+  public void getInput(){
+    try{
+      String tmp; 
+      while ((tmp = din.readLine()) != null) {
+          String[] values = tmp.split(",");
+          fill(Integer.parseInt(values[0]), Integer.parseInt(values[1]), Integer.parseInt(values[2]));
+          rect(x, y, width, height);
+      }
+      System.out.println("from server we got: " + tmp);
+    } catch(IOException e){
+      System.out.println("IOException when retrieving input: " + e.toString());
+    }
+    
+  }
+}
+
 
 class TestObserver implements Observer { //This observer class verifies that a pixelpusher is connected to the raspberry pi through the network switch, it also gives us an easy way to connect to and interface with the pixelpusher
   public boolean hasStrips = false;
@@ -64,11 +103,12 @@ TestObserver testObserver;
 Random R = new Random();
 int rain_color = color(0, 0, 127);
 ArrayList<Rain> droplets;
-PImage currentFrame;
+String newInput;
 int rainLength = 3;
 int screenSaver = 0;
 String filename = "image.jpg";
 int state, r, g, b;
+JavaServer connection;
 
 public void settings() {
   //String[] args = new String[]{"--no-panels", "true", "--image-width", "400", "--image-height", "300", "--num-panels-x", "1", "--num-panels-y", "1", "--screen-saver", "3", "--canvas-width", "800", "--canvas-height", "800", "--image-filename", "testing.jpg"};
@@ -110,7 +150,9 @@ public void settings() {
 * It specifies important values that we will use throughout the program,most of the globals are specified in this space.
 */
 public void setup() {
-  if(screenSaver > 0 && screenSaver < 3){
+  if(screenSaver == 0){
+    connection = new JavaServer();
+  } else if (screenSaver > 0 && screenSaver < 3){
     droplets = new ArrayList<Rain>(height);
     if(screenSaver == 2){
       rain_color = color(127,127,127);
@@ -148,10 +190,10 @@ public void draw() {
      
      //THIS IS THE SECTION OF THE CODE WHICH READS IN THE IMAGE FROM THE DIRECTORY
      if(screenSaver == 0){ //standard where we load from a file
-       currentFrame = loadImage(filename);
-       imageMode(CORNER);
-       image(currentFrame, 0,0,width, height);
-     } else if(screenSaver == 1 || screenSaver == 2) { //if(screenSaver == 1){ // doing a screensaver of some time
+       System.out.println("requesting input");
+       connection.getInput();
+       System.out.println(newInput);
+     } else if(screenSaver == 1 || screenSaver == 2) {
        int newRainStart = R.nextInt(width/(width/xPanels/stride)); //get a random starting point for the new rain drop
        newRainStart = newRainStart*(width/xPanels/stride);
        Rain newRain = new Rain(newRainStart, 0);
@@ -199,8 +241,7 @@ public void draw() {
          b--;
          if(b == 0) state = 0;
        }
-     }
-     
+     }  
      
      //THIS IS THE SECTION OF CODE WHICH TRANSLATES THE CANVAS TO THE PHYSICAL PANEL
      // for every strip: we want to go through each LED and determine the location that LED should relate to on the canvas
