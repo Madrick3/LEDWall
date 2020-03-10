@@ -39,9 +39,9 @@
 		<string>--screen-saver</string>
 		<string>0</string>
 		<string>--canvas-width</string>
-		<string>400</string>
+		<string>40</string>
 		<string>--canvas-height</string>
-		<string>400</string>
+		<string>30</string>
 		<string>--image-filename</string>
 		<string>testing.jpg</string>
 		<string>--no-panels</string>

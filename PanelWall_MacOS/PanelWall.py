@@ -219,8 +219,8 @@ myWall = PanelWall()
 myWall.screenSaver = 0
 myWall.numPanelsX = 1
 myWall.numPanelsY = 1
-myWall.canvasWidth = 400
-myWall.canvasHeight = 400
+myWall.canvasWidth = 40
+myWall.canvasHeight = 30
 myWall.run()
 time.sleep(1)
 myWall.testUpdate()

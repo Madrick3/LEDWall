@@ -89,6 +89,7 @@ int rainLength = 3;
 int screenSaver = 0;
 String filename = "image.jpg";
 int state, r, g, b;
+int updateMode = 0; //0 == full screen replacement, 1 == changes
 JavaSocket connection;
 
 void settings() {
@@ -167,19 +168,21 @@ void draw() {
      
      //THIS IS THE SECTION OF THE CODE WHICH READS IN THE IMAGE FROM THE DIRECTORY
      if(screenSaver == 0){ //standard where we load from a file
-       System.out.println("requesting input");
-       color inputPixel;
-       /*for(int i = 0; i < width; i++){
-         for(int j = 0; j < height; j++){
-         */
-           inputPixel = connection.getInput();
-           stroke(red(inputPixel) + green(inputPixel) + blue(inputPixel));
-           fill(red(inputPixel), green(inputPixel), blue(inputPixel));
-           rect(0,0,width,height);
-           System.out.println("I just tried to make it a color!");
-           System.out.println(red(inputPixel) + green(inputPixel) + blue(inputPixel)); //
-         //}
-       //}
+       if(updateMode == 0){
+         System.out.println("requesting input - full screen");
+         color inputPixel;
+         for(int row = 0; row < width; row++){
+           System.out.println("new row");
+           for(int col = 0; col < height; col++){
+             inputPixel = connection.getInput();
+             stroke(red(inputPixel), green(inputPixel), blue(inputPixel));
+             fill(red(inputPixel), green(inputPixel), blue(inputPixel));
+             point(col,row);
+           }
+         }
+       } else {
+         System.out.println("this is not yet implemented");
+       }
      } else if(screenSaver == 1 || screenSaver == 2) {
        int newRainStart = R.nextInt(width/(width/xPanels/stride)); //get a random starting point for the new rain drop
        newRainStart = newRainStart*(width/xPanels/stride);
