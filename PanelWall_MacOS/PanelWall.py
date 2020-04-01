@@ -38,13 +38,9 @@ import time
 import socket
 import platform
 import plistlib
+import atexit
 
-RED = ("255","0","0")
-GREEN = ("0","255","0")
-BLUE = ("0","0","255")
-screen = ()
-
- #TODO: Test this new version on linux distro
+#TODO: Test this new version on linux distro
 class PanelWall:
 
     userPlatform = platform.system()
@@ -55,14 +51,19 @@ class PanelWall:
         print("LEDWall/PanelWall_MacOS: This module is not intended to be used with Windows. Please use the Windows version of this module or use a MacOS Platform")
         os._exit(1)
     
-    pl = plistlib.readPlist("application.macosx/PanelWall.app/Contents/InfoTemplate.plist")
-    sock = socket.socket()
-    framerate = 30
-    period = 1/framerate
-    starttime = time.time()
-    frameDuration = time.time() - starttime
+    _pl = plistlib.readPlist("application.macosx/PanelWall.app/Contents/InfoTemplate.plist")
+    _sock = socket.socket()
+    _framerate = 15
+    _period = 1/_framerate
+    _starttime = time.time()
+    _frameDuration = time.time() - _starttime
+    _REDWALL = [[("255","0","0")]*10]*10
+    _GREENWALL = [[("255","0","0")]*10]*10
+    _BLUEWALL = [[("255","0","0")]*10]*10
+    _screen = [[()]]
+    _javaClient = socket.socket()
 
-    parameters = {
+    _parameters = {
         "imageWidth": (400, "--image-width"),
         "imageHeight": (300, "--image-height"),
         "numPanelsX": (4, "--num-panels-x"),
@@ -71,7 +72,9 @@ class PanelWall:
         "canvasWidth": (800, "--canvas-width"),
         "canvasHeight": (600, "--canvas-height"),
         "imageFilepath": ("testing.jpg", "--image-filename"),
-        "noPanels": (True, "--no-panels")
+        "noPanels": (True, "--no-panels"),
+        "updateMode": (0, "--update-mode"),
+        "LEDResolution": (True, "--lock-resolution"),
     }
     
     """Create a new file since the user is trying to use the wall"""
@@ -79,17 +82,18 @@ class PanelWall:
         print("Creating Virtual Wall and creating a virtual server")
         HOST = "localhost"
         PORT = 2004
-        self.sock.bind((HOST, PORT))
-        self.sock.listen(1)
+        self._sock.bind((HOST, PORT))
+        self._sock.listen(1)
+        atexit.register(self.quitServer)
 
     def writeParameters(self) -> None:
         print("Parameters being used by the Wall: ")
-        self.pl["JVMArguments"] = [] 
-        for parameter in self.parameters:
-            self.pl["JVMArguments"].append(self.parameters[parameter][1])
-            self.pl["JVMArguments"].append(str(self.parameters[parameter][0]))
-            print(" " + str(self.parameters[parameter][1]) + " " + str(self.parameters[parameter][0]))
-        plistlib.writePlist(self.pl, "application.macosx/PanelWall.app/Contents/Info.plist")
+        self._pl["JVMArguments"] = [] 
+        for parameter in self._parameters:
+            self._pl["JVMArguments"].append(self._parameters[parameter][1])
+            self._pl["JVMArguments"].append(str(self._parameters[parameter][0]))
+            print(" " + str(self._parameters[parameter][1]) + " " + str(self._parameters[parameter][0]))
+        plistlib.writePlist(self._pl, "application.macosx/PanelWall.app/Contents/Info.plist")
 
     def run(self) -> None:
         self.writeParameters()
@@ -99,19 +103,29 @@ class PanelWall:
             print("Child Process")
             os.system(command)
         else:
-            (self.javaClient, info) = self.sock.accept()
+            (self._javaClient, info) = self._sock.accept()
 
-    def updatePanel(self, value) -> bool:
-        self.starttime = time.time()
-        sendthis = str.encode(self.screen[0] + "," + self.screen[1] + "," + self.screen[2] + "\n")
-        self.javaClient.send(sendthis)
-        time.sleep(0.0001)
-        self.frameDuration = time.time() - self.starttime
-        if(self.frameDuration > 0):
+    def updatePanel(self, digitalWall: [[(int, int, int)]]) -> bool:
+        self._starttime = time.time()
+        message = ""
+        for row in digitalWall:
+            message += "R"
+            for entry in row:
+                message += "C" + entry[0] + "," + entry[1] + "," + entry[2] + ","
+        print("python is sending to java: " + message)
+        sendthis = str.encode(message + "\n") #encode the message as bytes for sending to java - this can be improved
+        self._javaClient.send(sendthis)
+        self._frameDuration = time.time() - self._starttime
+        
+        if(self._frameDuration > 0):
             #print("frame had space to move: " + str(self.period - self.frameDuration))
-            time.sleep(self.frameDuration)
+            time.sleep(self._period - self._frameDuration)
         else:
             print("Frame took longer than determined period to update")
+        print("flushing")
+        message = "end\n"
+        print("python is sending to java - flush: " + message)
+        self._javaClient.send(str.encode(message)) #flush the stream
         return(True)
     
     def testUpdate(self) -> None:
@@ -119,108 +133,128 @@ class PanelWall:
         loop = 0
         while(True):
             if(state == 0):
-                self.screen = RED
-                loop+=1
+                self._screen = self._REDWALL
+                #loop+=1
             elif(state == 1):
-                self.screen = GREEN
-                loop+=1
+                self._screen = self._GREENWALL
+                #loop+=1
             else:
-                self.screen = BLUE
-                loop+=1
+                self._screen = self._BLUEWALL
+                #loop+=1
             if(loop == 100):
                 print("newSttate")
                 loop=0
                 state+=1
                 state%=3
-            self.updatePanel(self.screen)
+            self.updatePanel(self._screen)
+
+    def quitServer(self) -> None:
+        self._javaClient.close()
+        self._sock.close()
 
     @property
     def imageWidth(self) -> int:
-        return self.parameters["imageWidth"][0]
+        return self._parameters["imageWidth"][0]
     
     @imageWidth.setter
     def imageWidth(self, value: int) -> None:
-        self.parameters["imageWidth"] = (value, "--image-width")
+        self._parameters["imageWidth"] = (value, "--image-width")
     
     @property
     def imageHeight(self) -> int:
-        return self.parameters["imageHeight"][0]
+        return self._parameters["imageHeight"][0]
     
     @imageHeight.setter
     def imageHeight(self, value: int) -> None:
-        self.parameters["imageHeight"] = (value, "--image-height")
+        self._parameters["imageHeight"] = (value, "--image-height")
     
     @property
     def numPanelsX(self) -> int:
-        return self.parameters["numPanelsX"][0]
+        return self._parameters["numPanelsX"][0]
     
     @numPanelsX.setter
     def numPanelsX(self, value: int) -> None:
-        self.parameters["numPanelsX"] = (value, "--num-panels-x")
+        self._parameters["numPanelsX"] = (value, "--num-panels-x")
         
     @property
     def numPanelsY(self) -> int:
-        return self.parameters["numPanelsY"][0]
+        return self._parameters["numPanelsY"][0]
     
     @numPanelsY.setter
     def numPanelsY(self, value: int) -> None:
-        self.parameters["numPanelsY"] = (value, "--num-panels-y")
+        self._parameters["numPanelsY"] = (value, "--num-panels-y")
                 
     @property
     def screenSaver(self) -> int:
-        return self.parameters["screenSaver"][0]
+        return self._parameters["screenSaver"][0]
     
     @screenSaver.setter
     def screenSaver(self, value: int) -> None:
-        self.parameters["screenSaver"] = (value, "--screen-saver")
+        self._parameters["screenSaver"] = (value, "--screen-saver")
     
     @property
     def canvasWidth(self) -> int:
-        return self.parameters["canvasWidth"][0]
+        return self._parameters["canvasWidth"][0]
     
     @canvasWidth.setter
     def canvasWidth(self, value: int) -> None:
-        self.parameters["canvasWidth"] = (value, "--canvas-width")
+        self._parameters["canvasWidth"] = (value, "--canvas-width")
         
     @property
     def canvasHeight(self) -> int:
-        return self.parameters["canvasHeight"][0]
+        return self._parameters["canvasHeight"][0]
     
     @canvasHeight.setter
     def canvasHeight(self, value: int):
-        self.parameters["canvasHeight"] = (value, "--canvas-height")
+        self._parameters["canvasHeight"] = (value, "--canvas-height")
     
     @property
     def imageFilepath(self) -> str:
-        return self.parameters["imageFilepath"][0]
+        return self._parameters["imageFilepath"][0]
     
     @imageFilepath.setter
     def imageFilepath(self, value: str):
-        self.parameters["imageFilepath"] = (value, "--image-filename")
+        self._parameters["imageFilepath"] = (value, "--image-filename")
 
     @property
     def noPanels(self) -> str:
-        return self.parameters["noPanels"][0]
+        return self._parameters["noPanels"][0]
     
     @noPanels.setter
     def noPanels(self, value: bool):
-        self.parameters["noPanels"] = (value, "--no-panels")
+        self._parameters["noPanels"] = (value, "--no-panels")
 
     @property
     def sendToPanels(self) -> str:
-        return self.parameters["noPanels"][0]
+        return self._parameters["noPanels"][0]
     
-    @noPanels.setter
-    def sendToPanels(self, value: bool):
-        self.parameters["noPanels"] = (value, "--no-panels")
+    @sendToPanels.setter
+    def sendToPanels(self, value: bool) -> None:
+        self._parameters["noPanels"] = (value, "--no-panels")
+
+    @property
+    def updateMode(self) -> int:
+        return self._parameters["updateMode"][0]
+    
+    @updateMode.setter 
+    def updateMode(self, value: int) -> None:
+        self._parameters["updateMode"] = (value, "--update-mode")
+
+    @property
+    def LEDResolution(self) -> int:
+        return self._parameters["LEDResolution"][0]
+    
+    @LEDResolution.setter 
+    def LEDResolution(self, value: int) -> None:
+        self._parameters["LEDResolution"] = (value, "--lock-resolution")
 
 myWall = PanelWall()
-
 myWall.screenSaver = 0
 myWall.numPanelsX = 1
 myWall.numPanelsY = 1
-myWall.canvasWidth = 40
-myWall.canvasHeight = 30
+myWall.canvasWidth = 250
+myWall.canvasHeight = 250
+myWall.LEDResolution = True
 myWall.run()
 time.sleep(1)
 myWall.testUpdate()

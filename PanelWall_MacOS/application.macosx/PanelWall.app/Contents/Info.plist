@@ -39,12 +39,16 @@
 		<string>--screen-saver</string>
 		<string>0</string>
 		<string>--canvas-width</string>
-		<string>40</string>
+		<string>250</string>
 		<string>--canvas-height</string>
-		<string>30</string>
+		<string>250</string>
 		<string>--image-filename</string>
 		<string>testing.jpg</string>
 		<string>--no-panels</string>
+		<string>True</string>
+		<string>--update-mode</string>
+		<string>0</string>
+		<string>--lock-resolution</string>
 		<string>True</string>
 	</array>
 	<key>JVMMainClassName</key>

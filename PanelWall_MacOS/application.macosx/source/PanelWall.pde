@@ -16,6 +16,8 @@ class JavaSocket {
   DataInputStream din;
   int x = 0;
   int y = 0;
+  String currentPacket = "";
+  color [][] currentPixels;
   
   public JavaSocket() {
     try{
@@ -27,20 +29,53 @@ class JavaSocket {
     }
   }
   
-  public color getInput(){
+  public color[][] getInput(){
+    color[][] garbage = {{color(255,255,255)}};
     try{
+      int rowCount = 0, colCount = 0, valCount = 0;
       String tmp; 
-      while ((tmp = din.readLine()) != null) {
-          System.out.println("tmp: " + tmp);
-          String[] values = tmp.split(",");
-          color retThis = color(Integer.parseInt(values[0]), Integer.parseInt(values[1]), Integer.parseInt(values[2]));
-          return retThis;
+      color[][] newCanvas = new color[xPanels*stride][yPanels*stride];
+      System.out.println("getting input from socket"); //was checking socket
+      while ((tmp = din.readLine()) != null && tmp != "end") {
+        currentPacket = tmp;
+        x = 0;
+        y = 0;
+        System.out.println("Java has recved from python: " + currentPacket);
+        String[] rows = currentPacket.split("R");
+        System.out.println("java has split rows");
+        for(String row: rows){
+          if(!row.equals("")){
+            x = 0;
+            rowCount++;
+            System.out.println("Current Row: " + rowCount + ": " + row);
+            String[] cols = row.split("C");
+            System.out.println("java has split cols from row");
+            for(String col: cols){
+              if(!col.equals("")){
+                colCount++;
+                System.out.println("Current Col: " + colCount + ": " + col);
+                String[] values = col.split(",");
+                System.out.println("java has split commas");
+                System.out.print("[" + y + "][" + x + "]: (");
+                int i = 0;
+                for(String value: values){
+                  System.out.print(value + ",");
+                }
+                System.out.println(")");
+                newCanvas[y][x] = color(Integer.parseInt(values[0]), Integer.parseInt(values[1]), Integer.parseInt(values[2]));
+                x++;
+              }
+            }
+            y++; 
+          }
+        }
       }
+      System.out.println("End of transmission");
+      return(newCanvas);
     } catch(IOException e){
       System.out.println("IOException when retrieving input: " + e.toString());
-      return(color(255,0,0));
+      return(garbage);
     }
-    return(color(0,255,0));
   }
   
   public color getWhiteScreen(){
@@ -76,7 +111,7 @@ class Rain{
 //Global Variable Declarations
 int stride = 10; //Number of LEDS in a row, we snaked our LEDs so we must specially address each led 
 float widthShrink, heightShrink, aspectRatio, x=0, y=0;
-int xPanels = 4, yPanels = 3, imageWidth = 40, imageHeight = 30, canvasHeight = 30, canvasWidth = 40;
+int xPanels = 4, yPanels = 3, imageWidth = 40, imageHeight = 30, canvasHeight = 30, canvasWidth = 40, LEDsX = 40, LEDsY = 30, LEDSquareX, LEDSquareY;
 color colour = color(100,100,100);
 boolean initializing = true, stripsByRows = false, sendToPanels = true;
 int intensity = 255;
@@ -90,6 +125,7 @@ int screenSaver = 0;
 String filename = "image.jpg";
 int state, r, g, b;
 int updateMode = 0; //0 == full screen replacement, 1 == changes
+boolean lockResolution = true;
 JavaSocket connection;
 
 void settings() {
@@ -116,6 +152,10 @@ void settings() {
       sendToPanels = !Boolean.parseBoolean(args[i+1]);
     } else if(args[i].equals("--image-filename")){
       filename = args[i+1];
+    } else if(args[i].equals("--update-mode")){
+      updateMode = Integer.parseInt(args[i+1]);
+    } else if(args[i].equals("--lock-resolution")){
+      lockResolution = Boolean.parseBoolean(args[i+1]);
     }
   }
   size(canvasWidth, canvasHeight);
@@ -144,6 +184,10 @@ void setup() {
   }
   widthShrink = imageWidth/width;
   heightShrink = imageHeight/height;
+  LEDsX = width/(width/xPanels/stride);
+  LEDSquareX = width/LEDsX;
+  LEDsY = height/(height/yPanels/stride);
+  LEDSquareY = height/LEDsY;
   aspectRatio = width/height;
   frameRate(30); //determine the refresh rate we want the graphics to update at
   registry = new DeviceRegistry(); //create the registry 
@@ -162,29 +206,51 @@ void draw() {
      registry.startPushing();
      
      //Try to wipe the canvas completely
-     stroke(0,0,0);
-     fill(0,0,0);
-     rect(0, 0, width, height); //Wipe the canvas and reload
+     if(updateMode == 0){
+       stroke(0,0,0);
+       fill(0,0,0);
+       rect(0, 0, width, height); //Wipe the canvas and reload
+     }
      
      //THIS IS THE SECTION OF THE CODE WHICH READS IN THE IMAGE FROM THE DIRECTORY
      if(screenSaver == 0){ //standard where we load from a file
        if(updateMode == 0){
-         System.out.println("requesting input - full screen");
-         color inputPixel;
-         for(int row = 0; row < width; row++){
-           System.out.println("new row");
-           for(int col = 0; col < height; col++){
-             inputPixel = connection.getInput();
-             stroke(red(inputPixel), green(inputPixel), blue(inputPixel));
-             fill(red(inputPixel), green(inputPixel), blue(inputPixel));
-             point(col,row);
+         if(lockResolution){
+           System.out.println("LED by LED Drawing");
+           color[][] newBoard;
+           newBoard = connection.getInput();
+           y = 0;
+           for(color[] row: newBoard){
+             x = 0;
+             for(color inputPixel: row){
+               stroke(red(inputPixel), green(inputPixel), blue(inputPixel));
+               fill(red(inputPixel), green(inputPixel), blue(inputPixel));
+               rect(x,y, LEDSquareX, LEDSquareY);
+               x+=LEDSquareX;
+             }
            }
+           y+=LEDSquareY;
+         } else {
+           System.out.println("requesting input - per pixel");
+           color[][] newBoard;
+           newBoard = connection.getInput();
+           y = 0;
+           for(color[] row: newBoard){
+             x = 0;
+             for(color inputPixel: row){
+               stroke(red(inputPixel), green(inputPixel), blue(inputPixel));
+               fill(red(inputPixel), green(inputPixel), blue(inputPixel));
+               point(x,y);
+               x++;
+             }
+           }
+           y++;
          }
        } else {
-         System.out.println("this is not yet implemented");
+         System.out.println("DELTA BASED IMAGE RENDERING IS NOT IMPLEMENTED YET");
        }
      } else if(screenSaver == 1 || screenSaver == 2) {
-       int newRainStart = R.nextInt(width/(width/xPanels/stride)); //get a random starting point for the new rain drop
+       int newRainStart = R.nextInt(LEDsX); //get a random starting point for the new rain drop
        newRainStart = newRainStart*(width/xPanels/stride);
        Rain newRain = new Rain(newRainStart, 0);
        droplets.add(newRain);
@@ -257,7 +323,6 @@ void draw() {
               canvasX = panelPixelX*width/xPanels/stride + stripOffsetX;
               canvasY = panelPixelY*height/yPanels/stride + stripOffsetY;
            }
-           //System.out.println("LED: " + LEDIndex + " maps to canvas: " + canvasX + "-" + canvasY);
           
            color c = get(canvasX + width/xPanels/stride/2, canvasY + height/yPanels/stride/2);
            g = green(c);
