@@ -26,6 +26,8 @@ The following is a simple example usage which assumes only 1 panel and iterates 
     myWall.canvasWidth = 800
     myWall.canvasHeight = 800
     myWall.run()
+    //Do work for the screen
+    myWall.updateScreen();
     
 The developer should be careful to verify that the number of panels and
 dimensions of these panels are accurate. If the physical arrangement of panels
@@ -33,7 +35,8 @@ is not the same as what is used in this software, incorrect behavior is likely
 to occur.
 """
 
-from multiprocessing import Process
+from multiprocessing import Process, Pipe, Lock
+import os
 from sys import exit
 import time
 import socket
@@ -51,8 +54,7 @@ class PanelWall:
     elif(userPlatform == 'Darwin'):
         print("LEDWall/PanelWall_Win64: This module is not intended to be used with MacOS. Please use the MacOS version of this module or use a Win64 Platform")
         exit(1)
-    
-    _pl = plistlib.readPlist("application.macosx/PanelWall.app/Contents/InfoTemplate.plist")
+
     _sock = socket.socket()
     _framerate = 15
     _period = 1/_framerate
@@ -64,6 +66,7 @@ class PanelWall:
     _screen = [[()]]
     _javaClient = socket.socket()
     _child = Process()
+    _path = "" #assumes that the directory "PanelWall_Win64" is in the same directory as the user's program
 
     _parameters = {
         "imageWidth": (400, "--image-width"),
@@ -87,6 +90,7 @@ class PanelWall:
         print("Creating Virtual Wall and creating a virtual server")
         HOST = "localhost"
         PORT = 2004
+        self._sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self._sock.bind((HOST, PORT))
         self._sock.listen(1)
         atexit.register(self.quitServer)
@@ -99,23 +103,17 @@ class PanelWall:
         LED Wall at Pitt, or present to the user a digital representation of 
         what will be loaded on to the led wall.
         """
-        self.f = open("panelScript.bat", "w")
-        self.f.write('APPDIR=$(readlink -f "$0")\n')
-        self.f.write('APPDIR=$(dirname "$APPDIR")\n')
-        self.f.write('java -Djna.nosys=true -Djava.library.path="$APPDIR:$APPDIR/lib" -cp '
-            '"$APPDIR:$APPDIR/lib/PanelWall.jar:$APPDIR/lib/core.jar:$APPDIR/lib/jogl-all.jar:' 
-            '$APPDIR/lib/gluegen-rt.jar:$APPDIR/lib/jogl-all-natives-linux-aarch64.jar:'
-            '$APPDIR/lib/gluegen-rt-natives-linux-aarch64.jar:$APPDIR/lib/nrserial.jar:'
-            '$APPDIR/lib/PixelPusher.jar" PanelWall --this-goes-first thenThis')
-
-    def bashCommand(self, String):
-        print("method bashCommand is not implemented")
-
+        self.f = open("PanelWall_Win64\\application.windows64\\panelScript.bat", "w")
+        self.f.write(' cd %~dp0\n')
+        self.f.write('start %1PanelWall.exe')
+        for paramPair in self._parameters.values():
+            self.f.write(" " + paramPair[1] + " " + str(paramPair[0]))
+        self.f.close()
 
     def run(self) -> None:
         self.createBatch()
-        command = "./application.macosx/PanelWall.app/Contents/MacOS/PanelWall"
-        _child = Process(target=self.bashCommand, args=command)
+        command = ".\\PanelWall_Win64\\application.windows64\\panelScript.bat"
+        _child = Process(target=cmdPrompt, args=(command,))
         _child.start()
         (self._javaClient, info) = self._sock.accept()
         print("Socket Info: " + info)
@@ -149,13 +147,13 @@ class PanelWall:
         while(True):
             if(state == 0):
                 self._screen = self._REDWALL
-                #loop+=1
+                loop+=1
             elif(state == 1):
                 self._screen = self._GREENWALL
-                #loop+=1
+                loop+=1
             else:
                 self._screen = self._BLUEWALL
-                #loop+=1
+                loop+=1
             if(loop == 100):
                 print("newSttate")
                 loop=0
@@ -167,6 +165,9 @@ class PanelWall:
         self._child.join()
         self._javaClient.close()
         self._sock.close()
+    
+    def setPathToPanelWall_Win64(self, path: str):
+        self._dirpath = path
 
     @property
     def imageWidth(self) -> int:
@@ -264,3 +265,19 @@ class PanelWall:
     def LEDResolution(self, value: int) -> None:
         self._parameters["LEDResolution"] = (value, "--lock-resolution")
     
+def cmdPrompt(commandString):
+    print("commandString: " + commandString)
+    os.system("cd %~dp0")
+    os.system("dir")
+    os.system(commandString)
+
+if __name__ == '__main__':
+    myWall = PanelWall()
+    _server_conn, _client_conn = Pipe()
+    myWall.screenSaver = 3
+    myWall.numPanelsX = 1
+    myWall.numPanelsY = 1
+    myWall.canvasWidth = 800
+    myWall.canvasHeight = 800
+    myWall.run()
+    myWall.testUpdate()
