@@ -1,1 +1,7 @@
 This folder contains tests for trying to track a person and their keypoints.
+
+Files and Descriptions:
+
+Body_Rectangle.py // Creates rectangle around identified body from webcam
+orb_webbcam_keypoint_detection.py // Generates and displays keypoints of webcam stream
+orb_coordinate_keypoints.py // Generates and displays key points and converts keypoint into two lists for the equivilant coordinates
