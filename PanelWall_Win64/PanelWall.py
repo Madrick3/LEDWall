@@ -55,6 +55,8 @@ class PanelWall:
         print("LEDWall/PanelWall_Win64: This module is not intended to be used with MacOS. Please use the MacOS version of this module or use a Win64 Platform")
         exit(1)
 
+    TIMING_DEBUG = False
+    PRINT_DEBUG = False
     _sock = socket.socket()
     _framerate = 15
     _period = 1/_framerate
@@ -66,7 +68,9 @@ class PanelWall:
     _screen = [[()]]
     _javaClient = socket.socket()
     _child = Process()
+    _message = ""
     _path = "" #assumes that the directory "PanelWall_Win64" is in the same directory as the user's program
+    digitalWall = bytearray()
 
     _parameters = {
         "imageWidth": (400, "--image-width"),
@@ -85,9 +89,10 @@ class PanelWall:
     def __init__(self) -> None:
         """Creates and initializes the PanelWall python server and prepares a java client
 
-        Runs at startup of module 
+        Runs at startup of module. This function the local server
         """
-        print("Creating Virtual Wall and creating a virtual server")
+        if(self.PRINT_DEBUG):
+            print("Creating Virtual Wall and creating a virtual server")
         HOST = "localhost"
         PORT = 2004
         self._sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -112,54 +117,31 @@ class PanelWall:
 
     def run(self) -> None:
         self.createBatch()
-        command = ".\\PanelWall_Win64\\application.windows64\\panelScript.bat"
+        command = self._path + ".\\PanelWall_Win64\\application.windows64\\panelScript.bat"
         _child = Process(target=cmdPrompt, args=(command,))
         _child.start()
         (self._javaClient, info) = self._sock.accept()
-        print("Socket Info: " + info)
-
-    def updatePanel(self, digitalWall: [[(int, int, int)]]) -> bool:
-        self._starttime = time.time()
-        message = ""
-        for row in digitalWall:
-            message += "R"
-            for entry in row:
-                message += "C" + entry[0] + "," + entry[1] + "," + entry[2] + ","
-        print("python is sending to java: " + message)
-        sendthis = str.encode(message + "\n") #encode the message as bytes for sending to java - this can be improved
-        self._javaClient.send(sendthis)
-        self._frameDuration = time.time() - self._starttime
-        
-        if(self._frameDuration > 0):
-            #print("frame had space to move: " + str(self.period - self.frameDuration))
-            time.sleep(self._period - self._frameDuration)
-        else:
-            print("Frame took longer than determined period to update")
-        print("flushing")
-        message = "end\n"
-        print("python is sending to java - flush: " + message)
-        self._javaClient.send(str.encode(message)) #flush the stream
-        return(True)
+        print("Socket Info: ", info)
     
-    def testUpdate(self) -> None:
-        state = 0
-        loop = 0
-        while(True):
-            if(state == 0):
-                self._screen = self._REDWALL
-                loop+=1
-            elif(state == 1):
-                self._screen = self._GREENWALL
-                loop+=1
-            else:
-                self._screen = self._BLUEWALL
-                loop+=1
-            if(loop == 100):
-                print("newSttate")
-                loop=0
-                state+=1
-                state%=3
-            self.updatePanel(self._screen)
+    #loop constantly sending a different set of points
+    def testSocket(self):
+        while True:
+            print("sendingpoint")
+            self.point(50,50)
+
+    #Adds current message to queue
+    def addMessage(self):
+        self._javaClient.send(bytes(self._message, encoding='utf8'))
+            
+    def point(self, x, y):
+        self._message = "P\n" + str(x) + "\n" + str(y) + "\n" 
+        self.addMessage()
+    
+    def debug(self) -> None:
+        print("Python Client beginning debug")
+        print("This message should not appear in production. Disable debug by eliminating any calls to '[User defined PanelWall Object].debug'")
+        self.TIMING_DEBUG = True
+        self.PRINT_DEBUG = True
 
     def quitServer(self) -> None:
         self._child.join()
@@ -168,6 +150,27 @@ class PanelWall:
     
     def setPathToPanelWall_Win64(self, path: str):
         self._dirpath = path
+
+    """
+    @property
+    def PRINT_DEBUG(self) -> bool:
+        return self.PRINT_DEBUG
+    
+    @PRINT_DEBUG.setter
+    def PRINT_DEBUG(self, value: bool) -> None:
+        print("Print Debug option for Python PanelWall manually specified")
+        self.PRINT_DEBUG = value
+
+
+    @property
+    def TIMING_DEBUG(self) -> bool:
+        return self.TIMING_DEBUG
+    
+    @TIMING_DEBUG.setter
+    def TIMING_DEBUG(self, value: bool) -> None:
+        print("Timing Debug option for Python PanelWall manually specified")
+        self.TIMING_DEBUG = value
+    """
 
     @property
     def imageWidth(self) -> int:
@@ -266,18 +269,17 @@ class PanelWall:
         self._parameters["LEDResolution"] = (value, "--lock-resolution")
     
 def cmdPrompt(commandString):
-    print("commandString: " + commandString)
     os.system("cd %~dp0")
-    os.system("dir")
     os.system(commandString)
 
 if __name__ == '__main__':
     myWall = PanelWall()
     _server_conn, _client_conn = Pipe()
-    myWall.screenSaver = 3
+    myWall.screenSaver = 0
     myWall.numPanelsX = 1
     myWall.numPanelsY = 1
     myWall.canvasWidth = 800
     myWall.canvasHeight = 800
     myWall.run()
-    myWall.testUpdate()
+    myWall.testSocket()
+    
