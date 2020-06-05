@@ -36,6 +36,7 @@ to occur.
 """
 
 from multiprocessing import Process, Pipe, Lock
+import subprocess
 import os
 from sys import exit
 import time
@@ -67,7 +68,7 @@ class PanelWall:
     _BLUEWALL = [[("255","0","0")]*10]*10
     _screen = [[()]]
     _javaClient = socket.socket()
-    _child = Process()
+    
     _message = ""
     _path = "" #assumes that the directory "PanelWall_Win64" is in the same directory as the user's program
     digitalWall = bytearray()
@@ -84,6 +85,7 @@ class PanelWall:
         "noPanels": (True, "--no-panels"),
         "updateMode": (0, "--update-mode"),
         "LEDResolution": (True, "--lock-resolution"),
+        "LEDMode": (True, "--led-mode"),
     }
     
     def __init__(self) -> None:
@@ -120,6 +122,7 @@ class PanelWall:
         command = self._path + ".\\PanelWall_Win64\\application.windows64\\panelScript.bat"
         _child = Process(target=cmdPrompt, args=(command,))
         _child.start()
+       
         (self._javaClient, info) = self._sock.accept()
         print("Socket Info: ", info)
     
@@ -127,50 +130,77 @@ class PanelWall:
     def testSocket(self):
         while True:
             print("sendingpoint")
+            self.start()
             self.point(50,50)
+            self.end()
+            time.sleep(1)
 
-    #Adds current message to queue
-    def addMessage(self):
-        self._javaClient.send(bytes(self._message, encoding='utf8'))
+    def testMovingPoint(self):
+        x = 0
+        xStep = 5
+        y = 0
+        yStep = 5
+        width = self._parameters["canvasWidth"][0]
+        height = self._parameters["canvasHeight"][0]
+        while True:
+            x+=xStep
+            y+=yStep
+            if x > width:
+                xStep = -5
+            elif x < 0:
+                xStep = 5
+            if y > height:
+                yStep = -5
+            elif y < 0:
+                yStep = 5   
+            self.start()
+            self.point(x, y)
+            self.end()
             
+
+    #Sends current string in _message to socket
+    def addMessage(self):
+        toSend = bytes(self._message, encoding='utf8')
+        print("Sending: ", toSend)
+        self._javaClient.send(toSend)
+
+    def start(self):
+        self._message = "S\r\n"
+        self.addMessage()
+
+    def end(self):
+        self._message = "E:\r\n"
+        self.addMessage()
+
     def point(self, x, y):
-        self._message = "P\n" + str(x) + "\n" + str(y) + "\n" 
+        self._message = "P:" + str(x) + " " + str(y) + "\r\n" 
+        self.addMessage()
+    
+    def rectangle(self, x0, y0, x1, y1):
+        self_message = "R:"+ str(x0) + " " + str(y1) + " " + str(x1) + " " + str(y1) + "\r\n"
         self.addMessage()
     
     def debug(self) -> None:
         print("Python Client beginning debug")
-        print("This message should not appear in production. Disable debug by eliminating any calls to '[User defined PanelWall Object].debug'")
+        print("This message should not appear in production. Disable debug by eliminating/commenting any calls to '[User defined PanelWall Object].debug'")
         self.TIMING_DEBUG = True
         self.PRINT_DEBUG = True
 
     def quitServer(self) -> None:
-        self._child.join()
+        #self._child.join()
         self._javaClient.close()
         self._sock.close()
     
     def setPathToPanelWall_Win64(self, path: str):
         self._dirpath = path
 
-    """
-    @property
-    def PRINT_DEBUG(self) -> bool:
-        return self.PRINT_DEBUG
-    
-    @PRINT_DEBUG.setter
-    def PRINT_DEBUG(self, value: bool) -> None:
-        print("Print Debug option for Python PanelWall manually specified")
-        self.PRINT_DEBUG = value
-
-
-    @property
-    def TIMING_DEBUG(self) -> bool:
-        return self.TIMING_DEBUG
-    
-    @TIMING_DEBUG.setter
-    def TIMING_DEBUG(self, value: bool) -> None:
-        print("Timing Debug option for Python PanelWall manually specified")
-        self.TIMING_DEBUG = value
-    """
+    def defaultSettings(self):
+        self.screenSaver = 4
+        self.numPanelsX = 4
+        self.numPanelsY = 3
+        self.canvasWidth = 800
+        self.canvasHeight = 600
+        self.LEDMode = False
 
     @property
     def imageWidth(self) -> int:
@@ -267,6 +297,14 @@ class PanelWall:
     @LEDResolution.setter 
     def LEDResolution(self, value: int) -> None:
         self._parameters["LEDResolution"] = (value, "--lock-resolution")
+
+    @property
+    def LEDMode(self) -> bool:
+        return self._parameters["LEDMode"][0]
+    
+    @LEDMode.setter
+    def LEDMode(self, value: bool) -> None:
+        self._parameters["LEDMode"] = (value, "--led-mode")
     
 def cmdPrompt(commandString):
     os.system("cd %~dp0")
@@ -274,12 +312,7 @@ def cmdPrompt(commandString):
 
 if __name__ == '__main__':
     myWall = PanelWall()
-    _server_conn, _client_conn = Pipe()
-    myWall.screenSaver = 0
-    myWall.numPanelsX = 1
-    myWall.numPanelsY = 1
-    myWall.canvasWidth = 800
-    myWall.canvasHeight = 800
+    myWall.defaultSettings()
     myWall.run()
-    myWall.testSocket()
+    myWall.testMovingPoint()
     

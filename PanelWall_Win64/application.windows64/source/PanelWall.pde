@@ -3,10 +3,14 @@ import com.heroicrobot.dropbit.devices.pixelpusher.Pixel;
 import com.heroicrobot.dropbit.devices.pixelpusher.Strip;
 import java.util.*;
 import java.net.Socket;
+import java.net.SocketAddress;
+import java.net.InetSocketAddress;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.InputStreamReader;
+import java.io.IOException;
 import processing.core.*;
+import java.util.Scanner;
 
 DeviceRegistry registry;                
 class TestObserver implements Observer { //This observer class verifies that a pixelpusher is connected to the raspberry pi through the network switch, it also gives us an easy way to connect to and interface with the pixelpusher
@@ -47,7 +51,7 @@ int step;
 
 //MARK: SETTINGS
 void settings() {
-  String[] args = new String[]{"--num-panels-x", "4", "--num-panels-y", "3", "--screen-saver", "5", "--canvas-width", "800", "--canvas-height", "600", "--led-mode", "true"};
+  //String[] args = new String[]{"--num-panels-x", "4", "--num-panels-y", "3", "--screen-saver", "5", "--canvas-width", "800", "--canvas-height", "600", "--led-mode", "true"};
   for (int i = 0; i < args.length; i+=1 ) { //first we should determine what the command line arguments are: 
     System.out.println(args[i]);
     if (args[i].equals("--image-width")) {
@@ -138,12 +142,27 @@ void draw() {
     stroke(0, 0, 0);
     fill(0, 0, 0);
     rect(0, 0, width, height); //Wipe the canvas and reload
+    /*
+    //drawDebugMessage("SOCKET INO: " + pipe.socket.toString(), 10);
 
+   
+    if(pipe.socketPass){
+      //drawDebugMessage("PIPE PASS SUCCESS", 5);
+    } else {
+      //drawDebugMessage("PIPE FAILED TO PASS", 5);
+    }
+    */
+    
     //THIS IS THE SECTION OF THE CODE WHICH READS IN THE IMAGE FROM THE DIRECTORY
     if (screenSaver == 0) { //python mode - we want to connect to a socket and 
+      //drawDebugMessage("L144 - accessing pipe",1);
+      
       pipe.readMessageAndDraw(); //get the message from the pipe and see if we can print it
-      pipe.sendReady();  
+      //pipe.sendReady();  
+      
+     // pipe.readNext();
     } else if (screenSaver == 1 || screenSaver == 2) { //if(screenSaver == 1){ // doing a screensaver of some time
+      //drawDebugMessage("L148 - Starting Rain", 1);
       downpour.update();
       downpour.draw();
     } else if (screenSaver == 3) {
@@ -237,6 +256,11 @@ void keyPressed() {
     frameRate(frameRate-1);
   } else if (key == 'w') {
     frameRate(frameRate+1);
+  } else if (key == ' '){
+    if (looping) noLoop();
+    else         loop();
+  } else if (key == '`'){
+    stop();
   } else {
     if (screenSaver == 5) {
       galaxy = new Space(5+(int)random(10));
@@ -245,4 +269,10 @@ void keyPressed() {
       rect(0, 0, width, height); //Wipe the canvas and reload
     }
   }
+}
+
+void drawDebugMessage(String message, int row){
+  textSize(32);
+  fill(255,255,255);
+  text(message, 0, 32*row);
 }

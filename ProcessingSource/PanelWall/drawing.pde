@@ -1,9 +1,27 @@
 public class drawing {
-  int type;
+  int t;
   int[] x, y;
   color colour = color(255, 0, 255);
   
-  public drawing(int t, Integer[] x, Integer[] y) {
+  public drawing(int t, int[] x, int[] y) {
+    this.t = t;
+    this.x = new int[t];
+    this.y = new int[t];
+    for(int i = 0; i < t; i++){
+      this.x[i] = x[i];
+      this.y[i] = y[i];
+    }
+  }
+  
+  public drawing(int t, int x, int y) {
+    this.t = t;
+    this.x = new int[t];
+    this.y = new int[t];
+    this.x[0] = x;
+    this.y[0] = y;
+  }
+  
+  public void draw(){
     stroke(255,255,255);
     fill(colour);
     if ( t != x.length || t != y.length){
