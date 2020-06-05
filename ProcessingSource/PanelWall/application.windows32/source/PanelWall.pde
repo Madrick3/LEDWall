@@ -29,7 +29,7 @@ int stride = 10; //Number of LEDS in a row, we snaked our LEDs so we must specia
 float widthShrink, heightShrink, aspectRatio, x=0, y=0;
 int xPanels = 4, yPanels = 3, imageWidth = 40, imageHeight = 30, canvasHeight = 30, canvasWidth = 40;
 color colour = color(100, 100, 100);
-boolean initializing = true, stripsByRows = false, sendToPanels = false;
+boolean initializing = true, stripsByRows = false, sendToPanels = false, displayFrameCount = false;
 int intensity = 255;
 TestObserver testObserver;
 PImage currentFrame;
@@ -51,7 +51,7 @@ int step;
 
 //MARK: SETTINGS
 void settings() {
-  //String[] args = new String[]{"--num-panels-x", "4", "--num-panels-y", "3", "--screen-saver", "5", "--canvas-width", "800", "--canvas-height", "600", "--led-mode", "true"};
+  //String[] args = new String[]{"--num-panels-x", "4", "--num-panels-y", "3", "--screen-saver", "5", "--canvas-width", "800", "--canvas-height", "600", "--led-mode", "false", "--frame-count", "true"};
   for (int i = 0; i < args.length; i+=1 ) { //first we should determine what the command line arguments are: 
     System.out.println(args[i]);
     if (args[i].equals("--image-width")) {
@@ -86,7 +86,9 @@ void settings() {
       rainLength = Integer.parseInt(args[i+1]);
     } else if (args[i].equals("--rain-color")) {
       rainColor = Integer.parseInt(args[i+1]);
-    }
+    } else if (args[i].equals("--frame-count")) {
+      displayFrameCount = Boolean.parseBoolean(args[i+1]);
+    } 
   }
   System.out.println(canvasWidth + "" + canvasHeight);
   size(canvasWidth, canvasHeight);
@@ -172,6 +174,12 @@ void draw() {
     } else if (screenSaver == 5) {
       galaxy.update();
       galaxy.draw();
+    }
+    
+    
+    
+    if(displayFrameCount){
+      drawDebugMessage(Integer.toString(frameCount), 1);
     }
 
     //If LEDMODE is true, then we can make the display look like LEDS on our LEDWall at benedum

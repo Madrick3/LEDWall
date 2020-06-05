@@ -59,7 +59,7 @@ int stride = 10; //Number of LEDS in a row, we snaked our LEDs so we must specia
 float widthShrink, heightShrink, aspectRatio, x=0, y=0;
 int xPanels = 4, yPanels = 3, imageWidth = 40, imageHeight = 30, canvasHeight = 30, canvasWidth = 40;
 int colour = color(100, 100, 100);
-boolean initializing = true, stripsByRows = false, sendToPanels = false;
+boolean initializing = true, stripsByRows = false, sendToPanels = false, displayFrameCount = false;
 int intensity = 255;
 TestObserver testObserver;
 PImage currentFrame;
@@ -81,7 +81,7 @@ int step;
 
 //MARK: SETTINGS
 public void settings() {
-  //String[] args = new String[]{"--num-panels-x", "4", "--num-panels-y", "3", "--screen-saver", "5", "--canvas-width", "800", "--canvas-height", "600", "--led-mode", "true"};
+  //String[] args = new String[]{"--num-panels-x", "4", "--num-panels-y", "3", "--screen-saver", "5", "--canvas-width", "800", "--canvas-height", "600", "--led-mode", "false", "--frame-count", "true"};
   for (int i = 0; i < args.length; i+=1 ) { //first we should determine what the command line arguments are: 
     System.out.println(args[i]);
     if (args[i].equals("--image-width")) {
@@ -116,7 +116,9 @@ public void settings() {
       rainLength = Integer.parseInt(args[i+1]);
     } else if (args[i].equals("--rain-color")) {
       rainColor = Integer.parseInt(args[i+1]);
-    }
+    } else if (args[i].equals("--frame-count")) {
+      displayFrameCount = Boolean.parseBoolean(args[i+1]);
+    } 
   }
   System.out.println(canvasWidth + "" + canvasHeight);
   size(canvasWidth, canvasHeight);
@@ -202,6 +204,12 @@ public void draw() {
     } else if (screenSaver == 5) {
       galaxy.update();
       galaxy.draw();
+    }
+    
+    
+    
+    if(displayFrameCount){
+      drawDebugMessage(Integer.toString(frameCount), 1);
     }
 
     //If LEDMODE is true, then we can make the display look like LEDS on our LEDWall at benedum
@@ -431,17 +439,31 @@ public class Interface {
         println(raw);
         if (!raw.isEmpty()) {
           split = split(raw, ":");
-          println("Split: ", split);
-          if (split[0].equals("E")) {
+          println("Split: ", split.toString());
+          if (split[0].equals("E")) { //End
             start = false;
-          } else if (split[0].equals("P")) {
+          } else if (split[0].equals("P")) { //Point
             println("creating point");
             coords = PApplet.parseInt(split(split[1], " "));
             drawings.add(new drawing(1, coords[0], coords[1]));
-          } else if (split[0].equals("R")) {
+          } else if (split[0].equals("R")) { //Rectangle
             println("creating rectangle");
             coords = PApplet.parseInt(split(split[1], " "));
-            drawings.add(new drawing(2, coords[0], coords[1]));
+            drawings.add(new drawing(4, new int [] {coords[0], coords[2]}, new int [] {coords[1], coords[3]}));
+          } else if (split[0].equals("T")) { //Text
+            println("creating text");
+            coords = PApplet.parseInt(split(split[1], " "));
+            drawings.add(new drawing(5, coords[0], coords[1], coords[2], split[2]));
+          } else if (split[0].equals("L")){
+            println("creating line");
+            coords = PApplet.parseInt(split(split[1], " "));
+            println(coords);
+            drawings.add(new drawing(2, new int [] {coords[0], coords[2]}, new int [] {coords[1], coords[3]})); 
+            println("created drawings");
+          } else if (split[0].equals("C")){
+            println("creating circle");
+            coords = PApplet.parseInt(split(split[1], " "));
+            drawings.add(new drawing(3, coords[0], coords[1], coords[2])); 
           }
         }
         for (drawing d : drawings) {
@@ -468,7 +490,6 @@ public class Interface {
       }
     }
   }
-
 public class LED {
   public int x, y, xi, yi, diameter, intensity;
   public int colour;
@@ -818,13 +839,16 @@ public class Space{
 public class drawing {
   int t;
   int[] x, y;
+  int special;
+  String message;
   int colour = color(255, 0, 255);
   
   public drawing(int t, int[] x, int[] y) {
     this.t = t;
     this.x = new int[t];
     this.y = new int[t];
-    for(int i = 0; i < t; i++){
+    for(int i = 0; i < x.length ; i++){
+      println("in for loop for drawing: ", i);
       this.x[i] = x[i];
       this.y[i] = y[i];
     }
@@ -838,6 +862,25 @@ public class drawing {
     this.y[0] = y;
   }
   
+  public drawing(int t, int x, int y, int s){
+    this.t = t;
+    this.x = new int[t];
+    this.y = new int[t];
+    this.x[0] = x;
+    this.y[0] = y;
+    this.special = s;
+  }
+  
+  public drawing(int t, int x, int y, int s, String message){
+    this.t = t;
+    this.x = new int[t];
+    this.y = new int[t];
+    this.x[0] = x;
+    this.y[0] = y;
+    this.special = s;
+    this.message = message;
+  }
+  
   public void draw(){
     stroke(255,255,255);
     fill(colour);
@@ -848,7 +891,15 @@ public class drawing {
     } else if (t == 2){
       circle(x[0], y[0], 5);
       circle(x[1], y[1], 5);
-      line(x[0], y[0], x[1], y[2]);
+      line(x[0], y[0], x[1], y[1]);
+    } else if (t == 3){
+      circle(x[0], y[0], special);
+    } else if (t == 4){
+      rectMode(CORNERS);
+      rect(x[0], y[0], x[1], y[1]);
+    } else if (t == 5){
+      textSize(special);
+      text(message, x[0], y[0]);
     }
   }
 }

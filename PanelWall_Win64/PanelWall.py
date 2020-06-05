@@ -45,7 +45,14 @@ import platform
 import plistlib
 import atexit
 
-#TODO: Test this new version on linux distro
+def cmdPrompt(commandString):
+    """ Function used by child process to instantiate java/processing program
+
+    Accepts a string parameter to run in an os.system command
+    """
+    os.system("cd %~dp0")
+    os.system(commandString)
+
 class PanelWall:
 
     userPlatform = platform.system()
@@ -59,7 +66,7 @@ class PanelWall:
     TIMING_DEBUG = False
     PRINT_DEBUG = False
     _sock = socket.socket()
-    _framerate = 15
+    _framerate = 30
     _period = 1/_framerate
     _starttime = time.time()
     _frameDuration = time.time() - _starttime
@@ -68,6 +75,7 @@ class PanelWall:
     _BLUEWALL = [[("255","0","0")]*10]*10
     _screen = [[()]]
     _javaClient = socket.socket()
+    _sync = False
     
     _message = ""
     _path = "" #assumes that the directory "PanelWall_Win64" is in the same directory as the user's program
@@ -86,13 +94,17 @@ class PanelWall:
         "updateMode": (0, "--update-mode"),
         "LEDResolution": (True, "--lock-resolution"),
         "LEDMode": (True, "--led-mode"),
+        "FrameCount": (False, "--frame-count"),
     }
     
-    def __init__(self) -> None:
+    def __init__(self, debug: bool = False) -> None:
         """Creates and initializes the PanelWall python server and prepares a java client
 
-        Runs at startup of module. This function the local server
+        Runs at startup of module. If debug flag is given, initializes 
+        debug parameters of object as true for its existence.
         """
+        if(debug):
+            self.debug()
         if(self.PRINT_DEBUG):
             print("Creating Virtual Wall and creating a virtual server")
         HOST = "localhost"
@@ -165,19 +177,34 @@ class PanelWall:
         self._javaClient.send(toSend)
 
     def start(self):
+        self._starttime = time.time()
         self._message = "S\r\n"
         self.addMessage()
 
     def end(self):
         self._message = "E:\r\n"
         self.addMessage()
+        if self._sync:
+            time.sleep(self._frameDuration - (time.time()-self._starttime))
 
-    def point(self, x, y):
+    def point(self, x:int, y:int):
         self._message = "P:" + str(x) + " " + str(y) + "\r\n" 
         self.addMessage()
     
-    def rectangle(self, x0, y0, x1, y1):
-        self_message = "R:"+ str(x0) + " " + str(y1) + " " + str(x1) + " " + str(y1) + "\r\n"
+    def rectangle(self, x0:int, y0:int, x1:int, y1:int):
+        self._message = "R:"+ str(x0) + " " + str(y0) + " " + str(x1) + " " + str(y1) + "\r\n"
+        self.addMessage()
+
+    def line(self, x0:int, y0:int, x1:int, y1:int):
+        self._message = "L:"+ str(x0) + " " + str(y0) + " " + str(x1) + " " + str(y1) + "\r\n"
+        self.addMessage()
+
+    def text(self, string: str, x:int, y:int, textSize:int):
+        self._message = "T:" + str(x) + " " + str(y) + " " + str(textSize) + ":" + string + "\r\n"
+        self.addMessage()
+
+    def circle(self, x:int, y:int, radius:int):
+        self._message = "C:" + str(x) + " " + str(y) + " " + str(radius) + "\r\n"
         self.addMessage()
     
     def debug(self) -> None:
@@ -195,12 +222,14 @@ class PanelWall:
         self._dirpath = path
 
     def defaultSettings(self):
-        self.screenSaver = 4
+        self.screenSaver = 0
         self.numPanelsX = 4
         self.numPanelsY = 3
         self.canvasWidth = 800
         self.canvasHeight = 600
         self.LEDMode = False
+        self._framerate = 30
+        self.synchronize = True
 
     @property
     def imageWidth(self) -> int:
@@ -305,14 +334,28 @@ class PanelWall:
     @LEDMode.setter
     def LEDMode(self, value: bool) -> None:
         self._parameters["LEDMode"] = (value, "--led-mode")
-    
-def cmdPrompt(commandString):
-    os.system("cd %~dp0")
-    os.system(commandString)
 
+    @property
+    def synchronize(self) -> bool:
+        return self._sync
+    
+    @synchronize.setter 
+    def synchronize(self, value: bool) -> None:
+        self._sync = value
+        self._frameDuration = 1/self._framerate
+    
+    @property
+    def FrameCount(self) -> bool:
+        return self._parameters["FrameCount"][0]
+    
+    @FrameCount.setter 
+    def FrameCount(self, value: bool) -> None:
+        self._parameters["FrameCount"] = (value, "--frame-count")
+
+"""
 if __name__ == '__main__':
     myWall = PanelWall()
     myWall.defaultSettings()
     myWall.run()
     myWall.testMovingPoint()
-    
+"""

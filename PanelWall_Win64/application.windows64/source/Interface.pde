@@ -85,17 +85,31 @@ public class Interface {
         println(raw);
         if (!raw.isEmpty()) {
           split = split(raw, ":");
-          println("Split: ", split);
-          if (split[0].equals("E")) {
+          println("Split: ", split.toString());
+          if (split[0].equals("E")) { //End
             start = false;
-          } else if (split[0].equals("P")) {
+          } else if (split[0].equals("P")) { //Point
             println("creating point");
             coords = int(split(split[1], " "));
             drawings.add(new drawing(1, coords[0], coords[1]));
-          } else if (split[0].equals("R")) {
+          } else if (split[0].equals("R")) { //Rectangle
             println("creating rectangle");
             coords = int(split(split[1], " "));
-            drawings.add(new drawing(2, coords[0], coords[1]));
+            drawings.add(new drawing(4, new int [] {coords[0], coords[2]}, new int [] {coords[1], coords[3]}));
+          } else if (split[0].equals("T")) { //Text
+            println("creating text");
+            coords = int(split(split[1], " "));
+            drawings.add(new drawing(5, coords[0], coords[1], coords[2], split[2]));
+          } else if (split[0].equals("L")){
+            println("creating line");
+            coords = int(split(split[1], " "));
+            println(coords);
+            drawings.add(new drawing(2, new int [] {coords[0], coords[2]}, new int [] {coords[1], coords[3]})); 
+            println("created drawings");
+          } else if (split[0].equals("C")){
+            println("creating circle");
+            coords = int(split(split[1], " "));
+            drawings.add(new drawing(3, coords[0], coords[1], coords[2])); 
           }
         }
         for (drawing d : drawings) {
