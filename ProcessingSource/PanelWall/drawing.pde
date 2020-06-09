@@ -7,8 +7,8 @@ public class Drawing {
 
   public Drawing(int t, int[] x, int[] y) {
     this.t = t;
-    this.x = new int[t];
-    this.y = new int[t];
+    this.x = new int[x.length];
+    this.y = new int[y.length];
     for (int i = 0; i < x.length; i++) {
       println("in for loop for drawing: ", i);
       this.x[i] = x[i];
@@ -46,9 +46,7 @@ public class Drawing {
   public void draw() {
     stroke(255, 255, 255);
     fill(colour);
-    if ( t != x.length || t != y.length) {
-      print("Packet Error");
-    } else if (t == 1) {
+    if (t == 1) {
       circle(x[0], y[0], 5);
     } else if (t == 2) {
       circle(x[0], y[0], 5);
@@ -62,6 +60,8 @@ public class Drawing {
     } else if (t == 5) {
       textSize(special);
       text(message, x[0], y[0]);
+    } else if (t == 6) {
+      ellipse(x[0], y[0], x[1], y[1]);
     }
   }
 }

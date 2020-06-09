@@ -96,6 +96,10 @@ public class Interface {
             println("creating circle");
             coords = int(split(split[1], " "));
             drawings.add(new Drawing(3, coords[0], coords[1], coords[2]));
+          }  else if (split[0].equals("ELL")) { //Rectangle
+            println("creating ellipse");
+            coords = int(split(split[1], " "));
+            drawings.add(new Drawing(6, new int [] {coords[0], coords[2]}, new int [] {coords[1], coords[3]}));
           }
         }
         for (Drawing d : drawings) {
