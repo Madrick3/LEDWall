@@ -28,6 +28,7 @@ def drawLineCircleRect(fc, count):
     myWall.circle(100,100,count*10)
     myWall.line(100,100,200+count*10,200+count*10)
     myWall.rectangle(200+count*10,200+count*10, 300+count*10, 300+count*10)
+    myWall.ellipse(300+count*10, 300+count*10, count*10, count*20)
     myWall.end()        
 
 def testMovingPoint():
@@ -54,7 +55,7 @@ def testMovingPoint():
 
 
 if __name__ == '__main__':
-    myWall = PanelWall.PanelWall(debug = True)
+    myWall = PanelWall.PanelWall(debug = True, builtInApp = False)
     myWall.defaultSettings()
     myWall.FrameCount = True
     myWall.synchronize = True #forces python to wait until java is ready to send new message

@@ -66,6 +66,7 @@ class PanelWall:
     _javaClient = socket.socket()
     _sync = False
     _message = ""
+    _builtInApp = True
 
     _pl = plistlib.readPlist("PanelWall/application.macosx/PanelWall.app/Contents/InfoTemplate.plist")
 
@@ -83,11 +84,12 @@ class PanelWall:
         "FrameCount": (False, "--frame-count"),
     }
 
-    def __init__(self, debug = False) -> None:
+    def __init__(self, debug:bool = False, builtInApp: bool = True) -> None:
         if(debug):
             self.debug()
         if(self.PRINT_DEBUG):
             print("Creating Virtual Wall and creating a virtual server")
+        self._builtInApp = builtInApp
         userPlatform = platform.system()
         if(userPlatform == 'Linux'): 
             self.initLinux()
@@ -156,7 +158,9 @@ class PanelWall:
         if(self.PRINT_DEBUG):
             print("Starting Child Process to Manage Java Application")
         _child = Process(target=cmdPrompt, args=(command,))
-        _child.start()
+
+        if self._builtInApp:
+            _child.start()
        
         (self._javaClient, info) = self._sock.accept()
         if(self.PRINT_DEBUG):
@@ -185,9 +189,10 @@ class PanelWall:
         newpid = os.fork()
         if newpid == 0:
             print("Child Process")
-            print("child pwd")
-            os.system("pwd")
-            os.system(command)
+            #print("child pwd")
+            #os.system("pwd")
+            if self._builtInApp:
+                os.system(command)
         else:
             (self._javaClient, info) = self._sock.accept()
     
@@ -283,6 +288,10 @@ class PanelWall:
 
     def circle(self, x:int, y:int, radius:int):
         self._message = "C:" + str(x) + " " + str(y) + " " + str(radius) + "\r\n"
+        self.addMessage()
+    
+    def ellipse(self, x:int, y:int, width:int, height:int):
+        self._message = "ELL:"+ str(x) + " " + str(y) + " " + str(width) + " " + str(height) + "\r\n"
         self.addMessage()
     
     def debug(self) -> None:
