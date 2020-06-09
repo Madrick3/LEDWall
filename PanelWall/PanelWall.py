@@ -101,7 +101,7 @@ class PanelWall:
     
     """Create a new file since the user is trying to use the wall"""
     def initMacOS(self) -> None:
-        print("Creating Virtual Wall and creating a virtual server")
+        print("MacOS device found")
         HOST = "localhost"
         PORT = 2004
         self._sock.bind((HOST, PORT))
@@ -185,6 +185,8 @@ class PanelWall:
         newpid = os.fork()
         if newpid == 0:
             print("Child Process")
+            print("child pwd")
+            os.system("pwd")
             os.system(command)
         else:
             (self._javaClient, info) = self._sock.accept()
