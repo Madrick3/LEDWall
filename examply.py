@@ -54,7 +54,7 @@ def testMovingPoint():
 
 
 if __name__ == '__main__':
-    myWall = PanelWall.PanelWall(debug = False)
+    myWall = PanelWall.PanelWall(debug = True)
     myWall.defaultSettings()
     myWall.FrameCount = True
     myWall.synchronize = True #forces python to wait until java is ready to send new message

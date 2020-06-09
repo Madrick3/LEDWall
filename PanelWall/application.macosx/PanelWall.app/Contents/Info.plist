@@ -28,27 +28,21 @@
 	<string>1</string>
 	<key>JVMArguments</key>
 	<array>
-		<string>--image-width</string>
-		<string>400</string>
-		<string>--image-height</string>
-		<string>300</string>
 		<string>--num-panels-x</string>
-		<string>1</string>
+		<string>4</string>
 		<string>--num-panels-y</string>
-		<string>1</string>
+		<string>3</string>
 		<string>--screen-saver</string>
 		<string>0</string>
 		<string>--canvas-width</string>
-		<string>250</string>
+		<string>800</string>
 		<string>--canvas-height</string>
-		<string>250</string>
-		<string>--image-filename</string>
-		<string>testing.jpg</string>
+		<string>600</string>
 		<string>--no-panels</string>
 		<string>True</string>
-		<string>--update-mode</string>
-		<string>0</string>
-		<string>--lock-resolution</string>
+		<string>--led-mode</string>
+		<string>False</string>
+		<string>--frame-count</string>
 		<string>True</string>
 	</array>
 	<key>JVMMainClassName</key>
