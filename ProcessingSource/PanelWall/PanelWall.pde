@@ -164,9 +164,6 @@ void draw() {
   }
 }
 
-public void pythonSerial() {
-}
-
 void mouseDragged() {
   if (screenSaver == 5) {
     galaxy.Sun.x = mouseX;
@@ -193,9 +190,7 @@ void keyPressed() {
   } else {
     if (screenSaver == 5) {
       galaxy = new Space(5+(int)random(10));
-      stroke(0, 0, 0);
-      fill(0, 0, 0);
-      rect(0, 0, width, height); //Wipe the canvas and reload
+      clearCanvas();
     }
   }
 }
