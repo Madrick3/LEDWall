@@ -37,23 +37,6 @@ public class Interface {
     };
   }
 
-
-  /*
-  public Interface(){
-   sc = new Scanner(System.in);
-   }
-   
-   public void readNext(){
-   if(sc.hasNext()){
-   String text = sc.next();
-   println(text);
-   drawDebugMessage(text, 9);
-   } else {
-   drawDebugMessage("No Message", 8);
-   }
-   }
-   */
-
   /** Blocking function
    * Socket will read in from terminal and check for 'S'
    * After receiving 'S', Socket will process incoming messages until an 'E' message is received
@@ -61,11 +44,11 @@ public class Interface {
    */
   public void readMessageAndDraw() {
     //drawDebugMessage("starting read\n", 6);
-    boolean keepGoing = true, start = false;
+    boolean start = false;
     String raw;
     String [] split;
     int [] coords;
-    ArrayList<drawing> drawings = new ArrayList<drawing>();
+    ArrayList<Drawing> drawings = new ArrayList<Drawing>();
     try {
       fill(255, 255, 255);
       textSize(32);
@@ -88,51 +71,55 @@ public class Interface {
           println("Split: ", split.toString());
           if (split[0].equals("E")) { //End
             start = false;
+          } else if (split[0].equals("S")) {
+            start = false; 
+            drawDebugMessage("RECIEVED START MESSAGE BEFORE END. VERIFY CORRECT PACKET INFORMATION", 3);
           } else if (split[0].equals("P")) { //Point
             println("creating point");
             coords = int(split(split[1], " "));
-            drawings.add(new drawing(1, coords[0], coords[1]));
+            drawings.add(new Drawing(1, coords[0], coords[1]));
           } else if (split[0].equals("R")) { //Rectangle
             println("creating rectangle");
             coords = int(split(split[1], " "));
-            drawings.add(new drawing(4, new int [] {coords[0], coords[2]}, new int [] {coords[1], coords[3]}));
+            drawings.add(new Drawing(4, new int [] {coords[0], coords[2]}, new int [] {coords[1], coords[3]}));
           } else if (split[0].equals("T")) { //Text
             println("creating text");
             coords = int(split(split[1], " "));
-            drawings.add(new drawing(5, coords[0], coords[1], coords[2], split[2]));
-          } else if (split[0].equals("L")){
+            drawings.add(new Drawing(5, coords[0], coords[1], coords[2], split[2]));
+          } else if (split[0].equals("L")) {
             println("creating line");
             coords = int(split(split[1], " "));
             println(coords);
-            drawings.add(new drawing(2, new int [] {coords[0], coords[2]}, new int [] {coords[1], coords[3]})); 
+            drawings.add(new Drawing(2, new int [] {coords[0], coords[2]}, new int [] {coords[1], coords[3]})); 
             println("created drawings");
-          } else if (split[0].equals("C")){
+          } else if (split[0].equals("C")) {
             println("creating circle");
             coords = int(split(split[1], " "));
-            drawings.add(new drawing(3, coords[0], coords[1], coords[2])); 
+            drawings.add(new Drawing(3, coords[0], coords[1], coords[2]));
           }
         }
-        for (drawing d : drawings) {
+        for (Drawing d : drawings) {
           d.draw();
         }
-      } 
-    }catch(Exception e) {
-        fill(255, 255, 255);
-        println("Something went wrong");
-        textSize(32);
-        text("ERROR: INTERFACE TRYCATCH ERROR", 0, 64);
-        text(e.toString(), 0, 96);
       }
     }
-
-
-    public void sendReady() {
-      //drawDebugMessage("ready called", 7);
-      try {
-        out.write("*");
-      } 
-      catch(Exception e) {
-        print("Something went wrong with send");
-      }
+    catch(Exception e) {
+      fill(255, 255, 255);
+      println("Something went wrong");
+      textSize(32);
+      text("ERROR: INTERFACE TRYCATCH ERROR", 0, 64);
+      text(e.toString(), 0, 96);
     }
   }
+
+
+  public void sendReady() {
+    //drawDebugMessage("ready called", 7);
+    try {
+      out.write("*");
+    } 
+    catch(Exception e) {
+      print("Something went wrong with send");
+    }
+  }
+}

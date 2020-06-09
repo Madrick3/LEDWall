@@ -1,3 +1,37 @@
+public class LEDArray {
+  LED[][] array;
+
+  public LEDArray() {
+    this.array = new LED[xPanels*stride][yPanels*stride];  //initialize the array of LEDS
+    for (int x = 0; x < xPanels*stride; x++) {
+      for (int y = 0; y < yPanels*stride; y++) {
+        this.array[x][y] = new LED(x, y);
+      }
+    }
+  }
+
+  public void draw() {
+    //First iterate through the screen so we can get the colors for each of the pixels
+    for (int x = 0; x < xPanels*stride; x++) {
+      for (int y = 0; y < yPanels*stride; y++) {
+        LED curr = array[x][y];
+        curr.setColor(0);
+        //System.out.println(curr.toString());
+      }
+    }
+    fill(0, 0, 0);
+    stroke(0, 0, 0);
+    rect(0, 0, width, height);
+    //we drew the screen already so we need to wipe it and redraw the correct setup of LEDs
+    for (int x = 0; x < xPanels*stride; x++) {
+      for (int y = 0; y < yPanels*stride; y++) {
+        LED curr = array[x][y];
+        curr.draw();
+      }
+    }
+  }
+}
+
 public class LED {
   public int x, y, xi, yi, diameter, intensity;
   public color colour;
