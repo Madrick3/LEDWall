@@ -1,6 +1,4 @@
-#import PanelWall_Win64.PanelWall as Wall 
-#from .PanelWall_Win64 import PanelWall as Wall
-import PanelWall_Win64
+import PanelWall
 
 def testTimingAndText():
     count = 0
@@ -56,7 +54,7 @@ def testMovingPoint():
 
 
 if __name__ == '__main__':
-    myWall = PanelWall_Win64.PanelWall()
+    myWall = PanelWall.PanelWall(debug = False)
     myWall.defaultSettings()
     myWall.FrameCount = True
     myWall.synchronize = True #forces python to wait until java is ready to send new message

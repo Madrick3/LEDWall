@@ -1,2 +1,0 @@
- cd %~dp0
-start %1PanelWall.exe --image-width 400 --image-height 300 --num-panels-x 4 --num-panels-y 3 --screen-saver 0 --canvas-width 800 --canvas-height 600 --image-filename testing.jpg --no-panels True --update-mode 0 --lock-resolution True --led-mode False --frame-count True
