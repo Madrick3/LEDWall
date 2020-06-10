@@ -62,6 +62,14 @@ public class Drawing {
       text(message, x[0], y[0]);
     } else if (t == 6) {
       ellipse(x[0], y[0], x[1], y[1]);
+    } else if (t == 7){
+      triangle(x[0], y[0], x[1], y[1], x[2], y[2]);
+    } else if (t == 8){
+      beginShape();
+      for(int i = 0; i < x.length && i < y.length; i++){
+        vertex(x[i], y[i]);
+      }
+      endShape(CLOSE);
     }
   }
 }

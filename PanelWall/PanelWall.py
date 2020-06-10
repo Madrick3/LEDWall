@@ -17,16 +17,16 @@ to the executable. The following parameters are currently supported:
     FrameCount:   (Boolean) True if we want to display the current frame number. Default: False
 
 The following is a simple example usage which assumes only 1 panel and iterates through the RGB spectrum:
-    myWall = PanelWall()
-    myWall.screenSaver = 3
-    myWall.numPanelsX = 1
-    myWall.numPanelsY = 1
-    myWall.canvasWidth = 800
-    myWall.canvasHeight = 800
-    myWall.run()
-    //Do work for the screen
-    myWall.updateScreen();
     
+    import PanelWall
+    if __name__ == '__main__':
+        myWall = PanelWall.PanelWall()
+        myWall.defaultSettings() #make these default settings default
+        myWall.synchronize = True #forces python to wait until java is ready to send new message
+        myWall.run()
+        #Put your draw code here
+
+
 The developer should be careful to verify that the number of panels and
 dimensions of these panels are accurate. If the physical arrangement of panels
 is not the same as what is used in this software, incorrect behavior is likely
@@ -268,7 +268,11 @@ class PanelWall:
         self._message = "E:\r\n"
         self.addMessage()
         if self._sync:
-            time.sleep(self._frameDuration - (time.time()-self._starttime))
+            sleepDuration = self._frameDuration - (time.time()-self._starttime)
+            if sleepDuration < 0:
+                print("we are lagging behind!")
+            else:
+                time.sleep(sleepDuration)
 
     def point(self, x:int, y:int):
         self._message = "P:" + str(x) + " " + str(y) + "\r\n" 
@@ -293,7 +297,19 @@ class PanelWall:
     def ellipse(self, x:int, y:int, width:int, height:int):
         self._message = "ELL:"+ str(x) + " " + str(y) + " " + str(width) + " " + str(height) + "\r\n"
         self.addMessage()
-    
+
+    def triangle(self, x0:int, y0:int, x1:int, y1:int, x2:int, y2:int):
+        self._message = "TRI:"+ str(x0) + " " + str(y0) + " " + str(x1) + " " + str(y1) + " " + str(x2) + " " + str(y2) + "\r\n"
+        self.addMessage()
+
+    def shapeFromPoints(self, x:[int], y:[int]):
+        self._message = "PNTSHP:"
+        #print(x)
+        for i in range(len(x)):
+            self._message += " " + str(x[i]) + " " + str(y[i])
+        self._message += "\r\n"
+        self.addMessage()
+
     def debug(self) -> None:
         print("Python Client beginning debug")
         print("This message should not appear in production. Disable debug by eliminating/commenting any calls to '[User defined PanelWall Object].debug'")
@@ -312,8 +328,8 @@ class PanelWall:
         self.screenSaver = 0
         self.numPanelsX = 4
         self.numPanelsY = 3
-        self.canvasWidth = 800
-        self.canvasHeight = 600
+        self.canvasWidth = 400
+        self.canvasHeight = 300
         self.LEDMode = False
         self._framerate = 30
         self.synchronize = True
@@ -438,11 +454,3 @@ class PanelWall:
     @FrameCount.setter 
     def FrameCount(self, value: bool) -> None:
         self._parameters["FrameCount"] = (value, "--frame-count")
-
-"""
-if __name__ == '__main__':
-    myWall = PanelWall()
-    myWall.defaultSettings()
-    myWall.run()
-    myWall.testMovingPoint()
-"""

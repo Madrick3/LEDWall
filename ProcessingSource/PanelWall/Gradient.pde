@@ -7,7 +7,9 @@ public class Gradient {
   }
 
   public void draw() {
-    clearCanvas();
+    stroke(r, g, b);
+    fill(r, g, b);
+    rect(0, 0, width, height); //Wipe the canvas and reload
     if (colorState == 0) {
       g+=step;
       if (g>=255) colorState = 1;

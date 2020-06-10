@@ -96,10 +96,24 @@ public class Interface {
             println("creating circle");
             coords = int(split(split[1], " "));
             drawings.add(new Drawing(3, coords[0], coords[1], coords[2]));
-          }  else if (split[0].equals("ELL")) { //Rectangle
+          } else if (split[0].equals("ELL")) { //Ellipse
             println("creating ellipse");
             coords = int(split(split[1], " "));
             drawings.add(new Drawing(6, new int [] {coords[0], coords[2]}, new int [] {coords[1], coords[3]}));
+          } else if (split[0].equals("TRI")) { //Triangle
+            println("Creating Triangle");
+            coords = int(split(split[1], " "));
+            drawings.add(new Drawing(7, new int [] {coords[0], coords[2], coords[4]}, new int [] {coords[1], coords[3], coords[5]}));
+          } else if (split[0].equals("PNTSHP")) { //Shape From Points
+            println("Creating Shape from Points");
+            coords = int(split(split[1], " "));
+            ArrayList<Integer> x = new ArrayList();
+            ArrayList<Integer> y = new ArrayList();
+            for(int i = 0; i < coords.length-1; i+=2){
+              x.add(coords[i]);
+              y.add(coords[i+1]);
+            }
+            drawings.add(new Drawing(8, integerArrayListToArray(x), integerArrayListToArray(y)));
           }
         }
         for (Drawing d : drawings) {

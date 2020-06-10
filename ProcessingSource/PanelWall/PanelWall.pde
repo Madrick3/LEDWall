@@ -31,15 +31,13 @@ color colour = color(100, 100, 100);
 boolean initializing = true;
 boolean stripsByRows = false;
 boolean sendToPanels = false;
+Boolean LEDMODE = false;
 boolean displayFrameCount = false;
 String filename = "image.jpg";
 
 PixelPusher hardware;
-
-Boolean LEDMODE = false;
-LEDArray LEDs;
-
 Interface pipe;
+LEDArray LEDs;
 
 //MARK: Interaction Setting Variables
 Space galaxy; //Space interaction
@@ -89,9 +87,7 @@ void settings() {
       displayFrameCount = Boolean.parseBoolean(args[i+1]);
     }
   }
-  System.out.println(canvasWidth + "" + canvasHeight);
   size(canvasWidth, canvasHeight);
-  System.out.println("CanvasWidth: " + width + " and CanvasHeight: " + height);
 }
 
 //MARK: SETUP
@@ -111,17 +107,14 @@ void setup() {
   widthShrink = imageWidth/width;
   heightShrink = imageHeight/height;
   aspectRatio = width/height;
-  frameRate(30); //determine the refresh rate we want the graphics to update at
+  frameRate(45); //determine the refresh rate we want the graphics to update at
   background(0); //initialize a black screen
   colorMode(RGB, 255, 255, 255, 255); //Specify the colormode of the pixels and their max values in RGBI mode (Red Green Blue Intensity)
   rectMode(CORNER);
-  LEDs = new LEDArray();
 
-  //MARK: Python interface setup
+  //MARK: Backend Setup
   pipe = new Interface();
-
-
-  //MARK: LEDWall Hardware Interface Setup
+  LEDs = new LEDArray();
   hardware = new PixelPusher();
 }
 
@@ -135,7 +128,6 @@ void draw() {
     if (screenSaver == 0) { //python mode - we want to connect to a socket and 
       pipe.readMessageAndDraw(); //get the message from the pipe and see if we can print it
     } else if (screenSaver == 1 || screenSaver == 2) { //if(screenSaver == 1){ // doing a screensaver of some time
-      //drawDebugMessage("L148 - Starting Rain", 1);
       downpour.update();
       downpour.draw();
     } else if (screenSaver == 3) {
@@ -205,4 +197,12 @@ void clearCanvas() {
   stroke(0, 0, 0);
   fill(0, 0, 0);
   rect(0, 0, width, height); //Wipe the canvas and reload
+}
+
+int[] integerArrayListToArray(ArrayList<Integer> arr){
+  int[] newArray = new int[arr.size()];
+  int i = 0;
+  for(int element: arr)
+    newArray[i++] = element;
+  return newArray;
 }

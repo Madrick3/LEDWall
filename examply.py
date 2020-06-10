@@ -1,13 +1,5 @@
 import PanelWall
 
-def testTimingAndText():
-    count = 0
-    while True:
-        count+=1
-        myWall.start()
-        myWall.text(str(count), 0, 96, 32)
-        myWall.end()
-
 def testLineCircleAndRect():
     fc = 0
     count = 0
@@ -29,30 +21,9 @@ def drawLineCircleRect(fc, count):
     myWall.line(100,100,200+count*10,200+count*10)
     myWall.rectangle(200+count*10,200+count*10, 300+count*10, 300+count*10)
     myWall.ellipse(300+count*10, 300+count*10, count*10, count*20)
+    myWall.triangle(400, 400, 400+count*10, 400+count*10, 400-count*10, 400+count*10)
+    myWall.shapeFromPoints(x=[100,150,200,300], y=[190, 100, 45, 400])
     myWall.end()        
-
-def testMovingPoint():
-    x = 0
-    xStep = 5
-    y = 0
-    yStep = 5
-    width = myWall.canvasWidth
-    height = myWall.canvasHeight
-    while True:
-        x+=xStep
-        y+=yStep
-        if x > width:
-            xStep = -5
-        elif x < 0:
-            xStep = 5
-        if y > height:
-            yStep = -5
-        elif y < 0:
-            yStep = 5   
-        myWall.start() #start sending packet
-        myWall.point(x, y) #add point to packet
-        myWall.end() #end packet 
-
 
 if __name__ == '__main__':
     myWall = PanelWall.PanelWall(debug = True, builtInApp = False)
@@ -60,6 +31,4 @@ if __name__ == '__main__':
     myWall.FrameCount = True
     myWall.synchronize = True #forces python to wait until java is ready to send new message
     myWall.run()
-    #testMovingPoint()
-    #testTimingAndText()
     testLineCircleAndRect()
