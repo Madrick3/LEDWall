@@ -48,7 +48,7 @@ Pedestrian pedestrian; //pedestrian screensaver
 
 //MARK: SETTINGS
 void settings() {
-  String[] args = new String[]{"--num-panels-x", "4", "--num-panels-y", "3", "--screen-saver", "5", "--canvas-width", "800", "--canvas-height", "600", "--led-mode", "false", "--frame-count", "true"};
+  String[] args = new String[]{"--num-panels-x", "4", "--num-panels-y", "3", "--screen-saver", "5", "--canvas-width", "400", "--canvas-height", "300", "--led-mode", "false", "--frame-count", "true"};
   for (int i = 0; i < args.length; i+=1 ) { //first we should determine what the command line arguments are: 
     System.out.println(args[i]);
     if (args[i].equals("--image-width")) {
