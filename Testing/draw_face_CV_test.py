@@ -1,5 +1,5 @@
 import PanelWall
-from LEDwallCV.track_face import ellipse_face as face
+from .LEDwallCV.track_face import ellipse_face as face
 import time
 
 def testTimingAndText():
