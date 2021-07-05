@@ -45,10 +45,11 @@ Rain downpour; //rain interaction
 int rainLength, rainColor; 
 Gradient gradient; //gradient screensaver
 Pedestrian pedestrian; //pedestrian screensaver
+LiveCamFaceDetection liveTest; // opencv library face detection test
 
 //MARK: SETTINGS
 void settings() {
-  String[] args = new String[]{"--num-panels-x", "4", "--num-panels-y", "3", "--screen-saver", "5", "--canvas-width", "400", "--canvas-height", "300", "--led-mode", "false", "--frame-count", "true"};
+  String[] args = new String[]{"--num-panels-x", "4", "--num-panels-y", "3", "--screen-saver", "6", "--canvas-width", "400", "--canvas-height", "300", "--led-mode", "false", "--frame-count", "true"};
   for (int i = 0; i < args.length; i+=1 ) { //first we should determine what the command line arguments are: 
     System.out.println(args[i]);
     if (args[i].equals("--image-width")) {
@@ -102,6 +103,7 @@ void setup() {
   downpour = new Rain(2, color(0, 0, 255));
   gradient = new Gradient(1);
   pedestrian = new Pedestrian();
+  liveTest = new LiveCamFaceDetection(this);
 
   //MARK: Display setup
   widthShrink = imageWidth/width;
@@ -137,6 +139,8 @@ void draw() {
     } else if (screenSaver == 5) {
       galaxy.update();
       galaxy.draw();
+    } else if (screenSaver == 6) {
+      liveTest.draw();
     }
 
     //DEBUG MESSAGES DRAWN TO CANVAS
@@ -206,3 +210,7 @@ int[] integerArrayListToArray(ArrayList<Integer> arr){
     newArray[i++] = element;
   return newArray;
 }
+
+void captureEvent(Capture c) {
+  c.read();
+}  

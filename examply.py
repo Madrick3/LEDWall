@@ -26,9 +26,10 @@ def drawLineCircleRect(fc, count):
     myWall.end()        
 
 if __name__ == '__main__':
-    myWall = PanelWall.PanelWall(debug = True, builtInApp = False)
+    myWall = PanelWall.PanelWall(debug = True, builtInApp = True)
     myWall.defaultSettings()
+    myWall.screenSaver = 3
     myWall.FrameCount = True
     myWall.synchronize = True #forces python to wait until java is ready to send new message
     myWall.run()
-    testLineCircleAndRect()
+    #testLineCircleAndRect()

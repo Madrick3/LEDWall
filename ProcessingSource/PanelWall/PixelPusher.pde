@@ -1,8 +1,9 @@
+
 public class PixelPusher {
 
   DeviceRegistry registry;   
   TestObserver testObserver;
-  List<Strip> strips;
+  java.util.List<Strip> strips;
 
   public PixelPusher() {
     registry = new DeviceRegistry(); //create the registry 
